@@ -15,3 +15,8 @@ The following packages are required to be installed in order for these scripts t
 4. plyr
 5. sqldf
 6. lme4
+
+
+### Thesis
+
+The raw files as well as the final PDF are available.  The original TEX thesis template was created by Sunil Patel (http://www.sunilpatel.co.uk/thesis-template/), which itself was a modified version of a thesis template by Steve Gunn (http://users.ecs.soton.ac.uk/srg/softwaretools/document/templates/).  It is very good and I'd thoroughly recommend using it.

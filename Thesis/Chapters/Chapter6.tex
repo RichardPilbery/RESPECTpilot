@@ -1,0 +1,84 @@
+\chapter{Discussion}
+\label{discussion}
+
+ \lhead{\emph{Discussion}} % Chapter title for thesis template 
+
+\section{Summary of main findings}
+\label{summaryofmainfindings}
+
+The RESPECT pilot study has demonstrated that it is possible to conduct a randomised crossover trial to test the accuracy of STEMI recognition by paramedics, using an online assessment tool. The numbers of paramedics who participated in the pilot reflect the advantage of using an online, and access anywhere, method of delivering the assessment tool to maximise recruitment. Conducting this study using physical media would have been difficult to administrate, expensive and time consuming. However, despite the final number of participants being well in excess of the target of 50 for the pilot, almost 24\% of participants who completed phase 1, failed to return for phase 2 (the crossover). This is a potential threat to the validity of the study and also could have an impact on the target sample size for the main study. There was no evidence that the incentives offered in the pilot study made any difference to completion rates. However, it is possible that had they been advertised and\slash or offered together, that they may have been more effective.
+
+Overall, participants were correct approximately 80\% of the time, irrespective of whether the computer message was visible (\autoref{final2by2all}). Participant sensitivity and specificity for all computer interpretations were almost identical, irrespective of whether the message was visible, or not, with a sensitivity of 86\% and specificity, 75--76\% depending on message visibility (\autoref{partsensspec}). This suggests that it is worth investigating ways to improve paramedics' recognition of STEMI.
+
+The sub-group analysis does suggest that computer interpretation messages have an effect on participant interpretation, although this must be taken in the context of a non-powered pilot study. In the sub-group of ECGs where the computer interpretation was correct, the proportion of correct answers by participants when the message was hidden was 84\%, increasing to 87\% when the message was visible. Likewise, sensitivity and specificity increased when participants viewed the correct computer interpretation message. Conversely, in the sub-group of incorrect computer interpretation, the proportion of correct answers fell to 77\% with the message hidden, and to 71\% when the incorrect computer interpretation message was visible (\autoref{final2by2incorrect}). As before, sensitivity and specificity followed suit, with a reduction in both when the incorrect message was displayed. This suggests that both the computer and participant are more likely to correctly, and incorrectly, interpret similar types of ECGs, which is worth investigating in the main study.
+
+Finally, the intra-class correlation coefficients (ICCs) will enable the calculation of the design effect of the main study. This is potentially the most serious threat to the feasibility of the main study, since if the sample size required to ensure the study is adequately powered is too large, then it would not be appropriate to proceed. The ICC for participants, was 0.05, which results in a design effect of 1.55, assuming a cluster size of 12 ECGs per participant. Of greater concern is the ICC for ECGs, which is 0.46. The median number of participants viewing each ECG in the pilot study, was 39, which would lead to a design effect of 18.48. Of course, these design effects are not separate, they both apply together and the calculation for an overall sample size for cross-classified models is non-trivial, may require Bayesian analysis~\citep{browne_comparison_2006} and will require expert statistical assistance.
+
+The logistic regression analysis with random effects modelling appears to have been conducted accurately, having been confirmed in a separate statistics application. The scripts created for the pilot study (an example of which can be seen in \autoref{appendixi}), can be utilised for the main study and be modified as required.
+
+Given the ICC values from the pilot study, it is reasonable to assume that larger standard errors and confidence intervals would have been seen when the unadjusted GLM was amended to account for clustering. However, the pilot data does not show this (\autoref{ormesgall}, \autoref{ormesgcc} and \autoref{ormesgci}) and this requires an explanation prior to commencing the main study. One possibility, is that the paired nature of the data has reduced the effect of the clustering of data. However, this needs to be reviewed by a statistician with an expertise in cluster randomised controlled trials. 
+
+\section{Interpretation}
+\label{interpretation}
+
+Assuming that a satisfactory explanation can be obtained for the smaller than expected standard errors and confidence intervals, the rates of attrition can be addressed, and the required sample size to conduct the main study is not prohibitively large, the results from the pilot study are rather encouraging and support undertaking the main study. 
+
+\section{Context}
+\label{context}
+
+The paramedic studies in the literature review (\autoref{literaturereview}) are difficult to compare directly with the RESPECT pilot since correctly excluded paramedic ECG interpretation attempts, and paramedic ECG interpretation without computer assistance, are not reported. \autoref{stemisubset} shows the proportions for the RESPECT pilot where the participants and the computer identified the ECG as a STEMI. This enables some form of comparison with the paramedic studies.
+
+\begin{table}[htbp]
+\begin{minipage}{\linewidth}
+\setlength{\tymax}{0.5\linewidth}
+\centering
+\small
+\caption{Two-by-two table showing data where computer and participant identified ECG as STEMI}
+\label{stemisubset}
+\begin{tabulary}{\textwidth}{@{}LCCC@{}} \toprule
+&\multicolumn{2}{c}{STEMI present}&\\
+Message&YES&NO&Total\\
+\midrule
+Visible&426 (72\%)&166 (28\%)&592\\
+Hidden&412 (76\%)&138 (24\%)&550\\
+
+\midrule
+Total&838 (73\%)&304 (27\%)&1142\\
+
+\bottomrule
+
+\end{tabulary}
+\end{minipage}
+\end{table}
+
+
+Paramedics appeared to perform slightly better in the Cantor study~\citep{cantor_prehospital_2012}, with paramedics correctly identifying STEMI in 106\slash 134 (79\%) of cases (assisted with computer interpretation) compared with 426\slash 592 (72\%) in the pilot study, although they would have had the benefit of the patient presentation and history to assist in their decision making. Paramedics in the Selker study~\citep{selker_emergency_2011} did not perform as well, despite having computer interpretation available, correctly recognising STEMI in 296\slash 437 (68\%) of patients. Finally, in the Ting study~\citep{ting_abstract_2009} paramedics performed much better, with 26\slash 30 (87\%) of patients correctly identified as STEMI by the paramedic (assisted by computer interpretation), although the sample size is small.
+
+The doctor studies~\citep{goodacre_computer_2001,massel_observer_2003,tsai_computer_2003} are more aligned to the RESPECT pilot methodologically, allowing a more direct comparison of results. The participants in the Tsai study were not as accurate as the pilot participants, but there was similarity in the pattern of the results. In the sub-group of correct computer interpretations, participants in the Tsai study made a correct diagnosis in 255\slash 480 (53\%) of ECGs when the message was not visible, which rose to a statistically significant 327\slash 480 (68\%, p$<$0.001) when the message was visible. In contrast, when only ECGs with incorrect computer interpretations were considered, 102\slash 180 (57\%) were interpreted correctly, reducing to 87\slash 180 (48\%) when the incorrect computer interpretation was displayed (p=0.131). However, the Tsai study ECGs were not limited to STEMI and STEMI-mimics.
+
+The Massel study showed a more modest change in the decision making of junior doctors when interpreting ECGs: when considering whether to administer thrombolysis, the participants were more likely to undercall a thrombolysis decision when the message was visible. However, further, more in-depth comparison with the pilot study is not possible based on the published results. The Goodacre study, similarly to the pilot study, found that overall the computer message did not significantly effect the junior doctors' decisions, but it was not limited to ECGs with STEMIs and STEMI-mimics, unlike the RESPECT pilot study.
+
+\section{Strengths and limitations}
+\label{strengthsandlimitations}
+
+The use of a crossover design is powerful in terms of reducing between-subject variability, making crossover trials more efficient than a similar sized parallel group trial and, in theory, producing more precise estimates of treatment effects with the same sample size. A key drawback with crossover trials is the risk of `carry over', when the wash-out period is insufficient to allow the effects of the first treatment to wear off~\citep{mills_design_2009,sibbald_understanding_1998}. In this study the two week wash-out period was considered sufficient to ensure participants could not recall their first phase attempt, and the ECGs they viewed. However, a perceived poor performance in the first phase, may have prompted the participants to revise their knowledge on ECGs, and so be better prepared for the second phase, or not to return at all. However, the reason for not returning for the second phase was not recorded in the pilot study. Since approximately 24\% of participants failed the study, there is a risk of attrition bias, which may have been compounded by the removal of incomplete results for the final analysis. 
+
+From the results of the incentive randomisation, it can be seen that there is no statistically significant difference in completion rates between the three incentive options. However, due to an inadvertent usability error, whereby the download link for the certificate did not automatically appear at the end of the study, a number of participants did contact the researcher asking for the certificate. A better advertised incentive at the start of the study, may assist in completion rates.
+
+The website assessment tool performed well, and since the allocation of ECGs and their randomisation was handled automatically, no intervention was required by the researcher, thus minimising the risk of observer bias. In addition, the website handled the wash-out period, not allowing participants to undertake phase two until the allotted time had passed, and inviting them to return by email, as well as sending out periodic reminders. Due to the design, replicating the study is straightforward and can be customised as required (for example, if overseas paramedics take part in a subsequent study).
+
+There was a risk that participants may have utilised textbooks or an expert colleague to assist with their answers, since the study is not supervised by the researcher. However, the time limited nature of the assessment (each ECG is only visible for 60 seconds) and the inability to view the same ECG with a specific message visibility (i.e. visible or hidden) more than once, should have minimised the chance of this happening.
+
+Ultimately, this is an experiment, and a proxy for the interpretation of an ECG in the presence of an acutely ill patient. However, to replicate this study prospectively with genuine patient episodes would be complicated and expensive, and make extracting the role of the computer message alone from the other benefits of an actual patient encounter (such as patient presentation and history) difficult. In addition, this is a pilot with no \emph{a priori} power calculations and the results need to be confirmed by an adequately powered study.
+
+\section{Implications for practice}
+\label{implicationsforpractice}
+
+The results from this pilot study should be interpreted with caution, and an adequately powered study is required before too much emphasis can be placed on the findings. The types of ECGs that the computer algorithms are more likely to misinterpret are known,~\citep{ting_implementation_2008} as are the modifiable factors that lead to error, such as incorrect lead placement~\citep{mccann_accuracy_2007,rajaganeshan_accuracy_2008}, incorrect identification of the J-point~\citep{williams_paramedic_2008} and even vehicular movement~\citep{hebel_accuracy_1994}. If it is the case that paramedics' diagnostic accuracy is being adversely affected by computer interpretation, then the education of paramedics in 12-lead ECG acquisition and interpretation would benefit from being reviewed to see whether this could be addressed.
+
+Alternatively, the computer interpretation messages could be turned off. However, there is a risk that if this is undertaken, then correct interpretation by paramedics, based on the pilot study results, would decrease. The accuracy of computer interpretation varies from study to study, but false positive rates are around 22\% and false negative, 6--9\%~\citep{clark_automated_2010}. Paramedics' accuracy does appear to improve these rates, with false positive results ranging from 15--18\% and false negative, from 1--6\%~\citep{feldman_real-time_2005,trivedi_can_2009,le_may_citywide_2008}. However, a recent US, multi-EMS system study, used a survey tool on 477 paramedics and found that they were poor at spotting STEMI-mimics, correctly interpreting known STEMI-mimics such as left ventricular hypertrophy (LVH) and left bundle branch block (LBBB) less than 40\% of the time~\citep{mencl_paramedic_2013}. It is difficult to know how generalisable these results are to the UK, since little research has been conducted with UK paramedics in the past 10 years, which can provide an estimate of paramedics' accuracy in the recognition (or exclusion) of STEMI. 
+
+\section{Future research}
+\label{futureresearch}
+
+These results need to be confirmed by an adequately powered study, assuming that the required sample size does not make the main study impracticable to conduct. It would also be helpful to conduct a qualitative study to explore how paramedics interpret 12-lead ECGs in the context of STEMI, and try to identify what role the computer interpretation message plays in their decision making. Utilising participants in the RESPECT study, who have consented to be contacted for subsequent research, would make it possible to identify a purposeful sample of participants for such a study, based on the influence that computer interpretation messages have on their decision about whether a STEMI is present or not.

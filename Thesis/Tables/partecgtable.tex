@@ -1,0 +1,25 @@
+\begin{table}[htbp]
+\begin{minipage}{\linewidth}
+\setlength{\tymax}{0.5\linewidth}
+\centering
+\small
+\caption{Example summary table of participant interaction with ECGs}
+\label{ecginteract}
+ \newcolumntype{G}{>{\centering\arraybackslash}p{0.035\textwidth}}
+ \newcolumntype{H}{>{\centering\arraybackslash}p{0.06\textwidth}}
+ \newcolumntype{J}{>{\centering\arraybackslash}p{0.2\textwidth}}
+\begin{tabulary}{\textwidth}{@{}HGGGHGGGGGGH@{}} \toprule
+\textbf{ECG ID}&\multicolumn{3}{J}{\textbf{Attempts with answer}}&\textbf{Data pairs}&\multicolumn{3}{J}{\textbf{Not attempted}}&\multicolumn{3}{J}{\textbf{Unviewed}}&\textbf{Excl.}\\
+&V&H&T&&V&H&T&V&H&T&\\
+\midrule
+1\\
+2\\
+{\ldots}\\
+48\\
+
+\bottomrule
+
+\end{tabulary}
+\end{minipage}
+\end{table}
+

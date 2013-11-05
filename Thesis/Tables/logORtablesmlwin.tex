@@ -1,0 +1,23 @@
+\begin{table}[htbp]
+\begin{minipage}{\linewidth}
+\setlength{\tymax}{0.5\linewidth}
+\centering
+\small
+\caption{Summary table of GLM analysis with and without random effects using MLWin}
+\label{tablemlwin}
+\begin{tabulary}{\textwidth}{@{}lCCCC@{}} \toprule
+&\multicolumn{2}{c}{Constant}&\multicolumn{2}{c}{Message}\\
+\textbf{Model}&\textbf{Log OR}&\textbf{SE}&\textbf{Log OR}&\textbf{SE}\\
+\midrule
+All interpretations, no random effects&1.41&0.06&--0.06&0.08\\
+All interpretations, with random effects&1.87&0.21&--0.08&0.09\\
+Correct computer interpretations, no random effects&1.67&0.09&0.27&0.13\\
+Correct computer interpretations, with random effects&2.25&0.30&0.35&0.15\\
+Incorrect computer interpretations, no random effects&1.19&0.08&--0.28&0.11\\
+Incorrect computer interpretations, with random effects&1.61&0.30&--0.36&0.12\\
+
+\bottomrule
+
+\end{tabulary}
+\end{minipage}
+\end{table}

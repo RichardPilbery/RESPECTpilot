@@ -1,0 +1,281 @@
+%% ----------------------------------------------------------------
+%% Thesis.tex -- MAIN FILE (the one that you compile with LaTeX)
+%% ---------------------------------------------------------------- 
+
+% Set up the document
+\documentclass[a4paper, 11pt, oneside]{Thesis}  % Use the "Thesis" style, based on the ECS Thesis style by Steve Gunn
+\graphicspath{{Figures/}}  % Location of the graphics files (set up for graphics to be in PDF format)
+
+%Rearrange the CMAP
+%\usepackage[resetfonts]{cmap}
+
+%Add XMP data need to include file call metadata.xmp
+\usepackage{xmpincl}
+\includexmp{metadata}
+
+
+\usepackage[usenames,dvipsnames]{xcolor}
+
+\usepackage{pdfpages}
+
+
+
+% Include any extra LaTeX packages required
+\usepackage[square, numbers, comma, sort&compress]{natbib}  % Use the "Natbib" style for the references in the Bibliography
+\usepackage{verbatim}  % Needed for the "comment" environment to make LaTeX comments
+\usepackage{vector}  % Allows "\bvec{}" and "\buvec{}" for "blackboard" style bold vectors in maths
+
+\hypersetup{allcolors=Blue, colorlinks=true}  % Colours hyperlinks in blue, but this can be distracting if there are many links.
+
+%Tabulary for Scrivener MMD compatibility
+\usepackage{tabulary}
+
+%dcolumn for stargazer - delete if not required
+\usepackage{dcolumn}
+
+% Change default Bibliography name to References
+\renewcommand{\bibname}{References}
+
+%\usepackage{subfig}
+%\captionsetup{belowskip=4pt,aboveskip=4pt}
+
+\usepackage{etoolbox}% http://ctan.org/pkg/etoolbox
+\AtBeginEnvironment{figure}{\addvspace{5mm}}\AtEndEnvironment{figure}{\addvspace{5mm}}
+\AtBeginEnvironment{table}{\addvspace{5mm}}\AtEndEnvironment{figure}{\addvspace{5mm}}
+%\AtBeginEnvironment{figure}{\addvspace{5mm}}
+
+
+%% ----------------------------------------------------------------
+\begin{document}
+\frontmatter	  % Begin Roman style (i, ii, iii, iv...) page numbering
+% Set up the Title Page
+\title  {Recognition of STEMI by Paramedics and the Effect of Computer inTerpretation (RESPECT) pilot study}
+\addresses  {\groupname\\\deptname\\\univname}  % Do not change this here, instead these must be set in the "Thesis.cls" file, please look through it instead
+\authors  {\texorpdfstring
+            {\href{http://uk.linkedin.com/pub/richard-pilbery/6b/828/413}{Richard Pilbery}}
+            {Richard Pilbery}
+            }
+
+\date       {\today}
+\subject    {A dissertation submitted in partial fulfilment for the degree of Masters of Clinical Research}
+\keywords   {Paramedic, 12-lead ECG, STEMI, clinical research, decision making, myocardial infarction, heart attack, Randomised controlled trial, crossover, pilot}
+
+\maketitle
+%% ----------------------------------------------------------------
+
+\setstretch{1.3}  % It is better to have smaller font and larger line spacing than the other way round
+
+% Define the page headers using the FancyHdr package and set up for one-sided printing
+\fancyhead{}  % Clears all page headers and footers
+\rhead{\thepage}  % Sets the right side header to show the page number
+\lhead{}  % Clears the left side page header
+
+\pagestyle{fancy}  % Finally, use the "fancy" page style to implement the FancyHdr headers
+
+\setcounter{page}{2}
+% The "Funny Quote Page"
+\pagestyle{empty}  % No headers or footers for the following pages
+
+\null\vfill
+% Now comes the "Funny Quote", written in italics
+\textit{As with many interventions intended to prevent ill health, the effectiveness of parachutes has not been subjected to rigorous evaluation by using randomised controlled trials. Advocates of evidence based medicine have criticised the adoption of interventions evaluated by using only observational data.  We think that everyone might benefit if the most radical protagonists of evidence based medicine organised and participated in a double blind, randomised, placebo controlled, crossover trial of the parachute.}
+
+\begin{flushright}
+CS Smith and JP Pell \cite{smith_parachute_2003}
+\end{flushright}
+
+\vfill\vfill\vfill\vfill\vfill\vfill\null
+\clearpage  % Funny Quote page ended, start a new page
+%% ----------------------------------------------------------------
+
+% The Abstract Page
+\addtotoc{Abstract}  % Add the "Abstract" page entry to the Contents
+\abstract{
+\addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
+
+\textbf{Background}
+Timely diagnosis and appropriate management of patients with ST-segment elevation myocardial infarction (STEMI) depends on accurate interpretation of the 12-lead ECG by paramedics. Computer interpretation messages on ECGs are often provided, but the effect they exert on paramedics' decision making is not known. The pilot study objective is to assess the feasibility of conducting a trial using an online assessment tool, to determine the effect of computer interpretation messages on paramedics' diagnosis of STEMI from a 12-lead ECG.
+
+\textbf{Methods}
+The RESPECT pilot study is a randomised cross-over trial utilising a bespoke, web-based assessment tool. Participants were randomly allocated 12 of 48 ECGs, with an equal mix of correct and incorrect computer interpretation messages, and STEMI and STEMI-mimics. 
+
+\textbf{Results}
+254 Health and Care Professions Council (HCPC) registered paramedics in the UK consented into the study, 205 completing the first phase and 156 completing phase two; an attrition rate of 24\%. The ICC for participants was 0.05 and for ECGs, 0.41. Overall, participant accuracy was 80\% when the computer message was visible and 79\% when hidden. In the subset of correct computer interpretations, accuracy was 84\% (message hidden) and 87\% (message visible). The subset of incorrect computer interpretations resulted in an accuracy of 77\% (message hidden) and 71\% (message visible). Overall, the unadjusted odds ratio (OR) of a correct interpretation with a computer message was 0.94 (95\%CI 0.77--1.10, p=0.44) and adjusted OR, 0.92 (95\%CI 0.77--1.10, p=0.38). For the subset of correct computer interpretation, the unadjusted OR was 1.31 (95\%CI 1.01--1.71, p=0.04) and adjusted OR, 1.42 (95\%CI 1.06--1.89, p=0.02). Incorrect computer interpretations had an unadjusted OR of 0.76 (95\%CI 0.61--0.93, p=0.01) and adjusted OR, 0.70 (95\%CI 0.56--0.88, p=0.00).
+
+\textbf{Conclusion}
+Data from the pilot study suggests the main study is feasible, assuming the sample size calculation for the main study is not prohibitively large.
+
+
+}
+
+\clearpage  % Abstract ended, start a new page
+%% ----------------------------------------------------------------
+
+\setstretch{1.3}  % Reset the line-spacing to 1.3 for body text (if it has changed)
+
+% The Acknowledgements page, for thanking everyone
+\acknowledgements{
+\addtocontents{toc}{\vspace{1em}}  % Add a gap in the Contents, for aesthetics
+
+First and foremost I would like to thank my supervisor, Steve Goodacre, for his enthu-siasm and advice, and for re-reading endless drafts of various chapters of this dissertation.  In addition, he and Francis Morris assumed the role of `senior doctors with specialist knowledge of ECGs', providing the reference standard for the ECGs used in the study.  Indeed, this study would not have got very far without the ECGs used in the assessment tool and thanks need to go to Tom Bouthillet and Chris Watford for providing a number of these.
+
+Whoever advised me to consult a statistician during the planning of a study also deserves much praise, although I cannot recollect where I first heard those words.  A seemingly simple study that recorded binary responses to a question about the presence of STEMI, turned out to have a rather complex analysis, involving clustering and cross-classified modelling, and I am indebted to Dawn Tere for assisting me through the minefield of binary logistic regression with random effects.  
+
+Friends and colleagues also deserve thanks, not least those who gave up their time to undertake the ECG `quiz' and generate the data I needed, as does the College of Paramedics Research and Development Committee, who were very supportive in advertising the study.
+
+}
+\clearpage  % End of the Acknowledgements
+%% ----------------------------------------------------------------
+
+\pagestyle{fancy}  %The page style headers have been "empty" all this time, now use the "fancy" headers as defined before to bring them back
+
+
+%% ----------------------------------------------------------------
+\lhead{\emph{Contents}}  % Set the left side page header to "Contents"
+\tableofcontents  % Write out the Table of Contents
+
+%% ----------------------------------------------------------------
+\afterpage{\blankpage}
+
+%% ----------------------------------------------------------------
+\lhead{\emph{List of Figures}}  % Set the left side page header to "List if Figures"
+\listoffigures  % Write out the List of Figures
+
+%% ----------------------------------------------------------------
+\lhead{\emph{List of Tables}}  % Set the left side page header to "List of Tables"
+\listoftables  % Write out the List of Tables
+
+%% ----------------------------------------------------------------
+\setstretch{1.5}  % Set the line spacing to 1.5, this makes the following tables easier to read
+\clearpage  % Start a new page
+\lhead{\emph{Abbreviations}}  % Set the left side page header to "Abbreviations"
+\listofsymbols{ll}  % Include a list of Abbreviations (a table of two columns)
+{
+\textbf{ACI-TIPI} & Acute cardiac ischaemia time-insensitive predictive instrument \\
+\textbf{ACS} & Acute coronary syndrome \\
+\textbf{AMI} & Acute myocardial infarction \\
+\textbf{ASA} & Ambulance services association \\
+\textbf{CAD} & Coronary artery disease \\
+\textbf{CASP} & Critical appraisal skills programme  \\
+\textbf{CCU} & Coronary care unit \\
+\textbf{CINAHL} & Cumulative index to nursing and allied health literature \\
+\textbf{CONSORT} & Consolidated standards of reporting trials \\
+\textbf{CPD} & Continuous professional development \\
+\textbf{CSE} & Common standard for quantitative electrocardiography \\
+\textbf{CSV} & Comma-separated values \\
+\textbf{ECG} & Electrocardiogram \\
+\textbf{ED} & Emergency department \\
+\textbf{EMS} & Emergency medical service \\
+\textbf{ESC} & European society of cardiology \\
+\textbf{GLM} & Generalised linear model \\
+\textbf{HCPC} & Health and care professions council \\
+\textbf{ICC} & Intra-class correlation coefficient \\
+\textbf{IEC} & International electrotechnical commission \\
+\textbf{IMMEDIATE} & Immediate myocardial metabolic enhancement during \\
+\textbf{ } & initial assessment and treatment in emergency care \\
+\textbf{IVCD} & Interventricular conduction delay \\
+\textbf{JRCALC} & Joint royal colleges ambulance liaison committe \\
+\textbf{LBBB} & Left bundle branch block \\
+\textbf{LVH} & Left ventricular hypertrophy \\
+\textbf{MEDLINE} & Medical literature analysis and retrieval system online \\
+\textbf{MI} & Myocardial infarction \\
+\textbf{MySQL} & My structured query language \\
+\textbf{NAEMT} & National association of emergency medical technicians\\
+\textbf{NHS} & National Health Service \\
+\textbf{NIAP} & National infarct angioplasty project \\
+\textbf{NSR} & Normal sinus rhythm \\
+\textbf{OR} & Odds ratio \\
+\textbf{PCP} & {Primary care paramedic} \\
+\textbf{PDF} & {Portable document format} \\
+\textbf{PHP} & {PHP: Hypertext Preprocessor (a recursive acronym)} \\
+\textbf{PICO} & Population, intervention, comparison and outcome \\
+\textbf{pPCI} & Primary percutaneous coronary intervention \\
+\textbf{PRISMA} & Preferred reporting items for systematic reviews and meta-analyses \\
+\textbf{PVC} & Premature ventricular contraction \\
+\textbf{REC} & Research ethics committee \\
+\textbf{RESPECT} & Recognition of STEMI by paramedics and the effect of \\
+  & computer interpretation \\
+\textbf{RVH} & Right ventricular hypertrophy \\
+\textbf{SHO} & Senior house officer \\
+\textbf{STEMI} & ST-segment elevation myocardial infarction \\
+\textbf{TPI} & Thrombolytic predictive instrument \\
+\textbf{UK} & United Kingdom \\
+\textbf{URL} & Uniform resource locator \\
+\textbf{YAS} & Yorkshire ambulance service \\
+}
+
+%% ----------------------------------------------------------------
+% End of the pre-able, contents and lists of things
+% Begin the Dedication page
+
+\setstretch{1.5}  % Return the line spacing back to 1.3
+
+%\pagestyle{empty}  % Page style needs to be empty for this page
+%\dedicatory{For/Dedicated to/To my\ldots}
+
+\addtocontents{toc}  % Add a gap in the Contents, for aesthetics
+
+
+%% ----------------------------------------------------------------
+\mainmatter	  % Begin normal, numeric (1,2,3...) page numbering
+\pagestyle{fancy}  % Return the page headers back to the "fancy" style
+
+% Include the chapters of the thesis, as separate files
+% Just uncomment the lines as you write the chapters
+
+\input{./Chapters/Chapter1} % Introduction - 2446 words
+
+\input{./Chapters/Chapter2} % Lit Review - 3529 words
+
+\input{./Chapters/Chapter3} % RESPECT study and pilot - 522 words
+
+\input{./Chapters/Chapter4} % Research Methods - 3989 words
+
+\input{./Chapters/Chapter5} % Results - 1149 words
+
+\input{./Chapters/Chapter6} % Discussion - 2099 words
+
+\input{./Chapters/Chapter7} % Conclusion - 123 words
+
+%% ----------------------------------------------------------------
+% Now begin the Appendices, including them as separate files
+
+\addtocontents{toc}{\vspace{2em}} % Add a gap in the Contents, for aesthetics
+
+\appendix % Cue to tell LaTeX that the following 'chapters' are Appendices
+
+%\input{./Appendices/AppendixA}	%Keyword search for lit review
+
+\input{./Appendices/AppendixA} % Summary of ECGs
+
+\input{./Appendices/AppendixB}  % MLWin data testing method
+
+\input{./Appendices/AppendixC} % YAS R&D approval
+
+\input{./Appendices/AppendixD}  % uni ethics
+
+\input{./Appendices/AppendixE} % uni research sponsors confirmation
+
+\input{./Appendices/AppendixF} % uni Risk assessment form
+
+\input{./Appendices/AppendixG} % Participant Information Sheet
+
+\input{./Appendices/AppendixH} % ECG and participant response tables
+
+\input{./Appendices/AppendixI}  % R stats output
+
+% \input{./Appendices/AppendixK}  
+
+
+\addtocontents{toc}{\vspace{2em}}  % Add a gap in the Contents, for aesthetics
+\backmatter
+
+%% ----------------------------------------------------------------
+
+\label{References}
+\lhead{\emph{References}}  % Change the left side page header to "Bibliography"
+\bibliographystyle{vancouver}  % Use the "vancouver" BibTeX style for formatting the Bibliography
+\bibliography{dissertation}  % The references (bibliography) information are stored in the file named "Bibliography.bib"
+
+\end{document}  % The End
+%% ----------------------------------------------------------------

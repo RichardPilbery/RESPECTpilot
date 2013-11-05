@@ -1,0 +1,21 @@
+\begin{table}[htbp]
+\begin{minipage}{\linewidth}
+\setlength{\tymax}{0.5\linewidth}
+\centering
+\small
+\caption{Summary of individual ECG answer times}
+\label{ecgtimes}
+ \newcolumntype{K}{>{\centering\arraybackslash}p{0.035\textwidth}}
+ \newcolumntype{N}{>{\centering\arraybackslash}p{0.06\textwidth}}
+ \newcolumntype{A}{>{\centering\arraybackslash}p{0.2\textwidth}}
+\begin{tabulary}{\textwidth}{@{}NKKKKKKKKKKKK@{}} \toprule
+\textbf{ECG ID}&\multicolumn{3}{A}{\textbf{Median correct answer time (secs)}}&\multicolumn{3}{A}{\textbf{Median incorrect answer time (secs)}}&\multicolumn{3}{A}{\textbf{No. Correct answers}}&\multicolumn{3}{A}{\textbf{No. Incorrect answers}}\\
+&V&H&T&V&H&T&V&H&T&V&H&T\\
+\midrule
+\input{Tables/partsumecgtime-middle}
+\bottomrule
+
+\end{tabulary}
+\end{minipage}
+\end{table}
+

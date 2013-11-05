@@ -1,0 +1,80 @@
+% Appendix A
+
+\chapter{Summary of study ECGs}
+\label{appendixa}
+\lhead{Appendix A. \emph{Summary of study ECGs}}
+
+\clearpage
+
+\centering
+ \renewcommand{\arraystretch}{2.0}
+ \newcolumntype{L}{>{\raggedright\arraybackslash}p{0.1\textwidth}}
+ \newcolumntype{A}{>{\raggedright\arraybackslash}p{0.25\textwidth}}
+ \tiny
+\begin{longtable}[c]{Lp{0.18\textwidth}AA}
+\caption{Summary of study ECGs}\\
+\hline
+\textbf{ECG ID} & \textbf{Classification} & \textbf{Actual interpretation} & \textbf{Computer interpretation} \\
+\hline
+\endfirsthead
+\multicolumn{4}{c}
+{\tablename\ \thetable\ -- \textit{Continued from previous page}} \\
+\hline
+\textbf{ECG ID} & \textbf{Classification} & \textbf{Actual interpretation} & \textbf{Computer interpretation} \\
+\hline
+\endhead
+\hline \multicolumn{4}{r}{\textit{Continued on next page}} \\
+\endfoot
+\hline
+\endlastfoot
+1&True negative&Early repolarisation&Otherwise normal ECG,  \newline  Sinus bradycardia, \newline  Early repolarisation \\
+2&True negative&Normal sinus rhythm, \newline  Old inferior MI&Abnormal ECG, \newline  Sinus rhythm, \newline  Possible inferior infarct - age undetermined \\
+3&True positive&Inferolateral MI&Acute MI suspected, \newline  Unusual P axis, \newline  Low voltage QRS \\
+4&True negative&Early repolarisation&Normal ECG or non-specific anomalies \\
+5&True negative&Paced rhythm&Abnormal ECG, \newline  Demand pacing, \newline  LVH with secondary repolarisation abnormality, \newline  Widespread ST-T abnormality may be due to hypertrophy and\slash or ischaemia \\
+6&False positive&Meets voltage criteria for LVH&Abnormal ECG, \newline  Meets ST elevation MI criteria, \newline  Sinus rhythm, \newline  Inferior ST elevation, \newline  consider acute \\
+7&False positive&IVCD&Abnormal ECG,  \newline  Meets ST elevation MI criteria,  \newline  Sinus rhythm with 1st degree A-V block,  \newline  Extensive infarct - possibly acute \\
+8&False positive&Pericarditis&Extensive myocardial infarction \\
+9&False positive&Pericarditis&Extensive myocardial infarction \\
+10&True negative&LBBB&Abnormal ECG Unconfirmed,  \newline  Normal sinus rhythm,  \newline  Left bundle branch block \\
+11&False positive&Inverted P waves in inferior leads,  \newline  PR depression&Acute MI suspected,  \newline  Unusual P axis and short PR,  \newline  probably junctional rhythm, \newline ST elevation consider inferior injury or acute infarct \\
+12&True negative&Early repolarisation&Otherwise normal ECG, sinus bradycardia \\
+13&False positive&Atrial flutter&Acute MI suspected,  \newline  Atrial flutter with 4:1 AV conduction, \newline  ST elevation consider inferior injury or acute infarct \\
+14&True negative&NSR, bifascicular block&Abnormal ECG unconfirmed,  \newline  Normal sinus rhythm, Right bundle branch block,  \newline  Left anterior fascicular block, Bifascicular block \\
+15&False positive&LBBB&Medium sized myocardial infarction,  \newline  consider urgen reperfusion therapy \\
+16&False positive&Early repolarisation&Acute MI suspected,  \newline  Sinus bradycardia with sinus arrhythmia,  \newline  ST elevation consider anterolateral injury or acute infarct,  \newline  ST elevation consider inferior injury or acute infarct \\
+17&False positive&Hyperkalaemia&Acute MI suspected, \newline  Atrial fibrillation with rapid ventricular response, \newline  Indeterminate axis,  \newline  Low voltage QRS,  \newline  ST elevation lateral injury or acute infarct \\
+18&False positive&LVH, early repolarisation&Extensive myocardial infarction \\
+19&False positive&Osborne waves&Meets ST elevation criteria,  \newline  Atrial fibrillation, \newline  Prolonged QT interval,  \newline  Widespread ST elevation,  \newline  consider acute infarct,  \newline  Anteroseptal ST depression is probably reciprocal to inferior infarct, \newline  ST junctional depression is non-specific \\
+20&True negative&Paced rhythm&Abnormal ECG,  \newline  Normal sinus rhythm,  \newline  Ventricular pre-excitation,  \newline  WPW pattern type B \\
+21&False negative&LAD occlusion, \newline  hyperacute T-waves&Abnormal ECG, sinus bradycardia,  \newline  moderate voltage criteria for LVH,  \newline  cannot rule out septal infarct, age undetermined \\
+22&True positive&Anterolateral MI&Meets ST elevation MI criteria,  \newline  sinus rhythm, anteroseptal infarct - possibly acute,  \newline  lateral ST elevation,  \newline  consider acute infarct \\
+23&False negative&Anterolateral MI&ECG override: data quality prohibits interpretation \\
+24&True positive&Anterior MI&Meets ST elevation MI criteria,  \newline  sinus bradycardia, \newline  left axis deviation,  \newline  anteroseptal ST elevation, \newline  consider acute infarct,  \newline  inferior\slash lateral ST-T abnormality suggests myocardial injury\slash ischaemia \\
+25&True positive&Anterolateral MI&Extensive myocardial infarction, consider urgent reperfusion therapy if patient's age $<$= 80 years \\
+26&True positive&Inferolateral MI&Medium-sized myocardial infarction, consider urgent reperfusion therapy if the patient's age $<$= 70 years \\
+27&True positive&Inferolateral MI&Extensive myocardial infarction, consider urgent reperfusion therapy if patient's age $<$= 80 years \\
+28&True positive&Inferior MI&Meets ST elevation MI criteria, \newline  sinus rhythm, \newline  rightward axis, RVH with secondary repolarisation abnormality, \newline  inferior ST elevation consider acute infarct,  \newline  Ant\slash septal and lateral ST\_T abnormality \\
+29&True positive&Anterolateral MI&Extensive myocardial infarction, consider urgent reperfusion therapy if patient's age $<$= 80 years \\
+30&True positive&Anterior MI&Meets ST elevation MI criteria, \newline  sinus rhythm,  \newline  Lead(s) unsuitable for analysis: V4, IV conduction defect,  \newline  septal infarct - possibly acute,  \newline  inferior T wave abnormality is nonspecific \\
+31&True negative&LBBB&Abnormal ECG unconfirmed,  \newline  Atrial fibrillation with PVCs,  \newline  QRS changes in V2 may be due to LVH but cannot rule out septal infarct,  \newline  Left ventricular hypertrophy,  \newline  inferio\slash lateral ST-T abnormality may be due to hypertrophy and\slash or ischaemia \\
+32&True positive&Inferolateral MI&Extensive myocardial infarction, consider urgent reperfusion therapy if patient's age $<$= 80 years \\
+33&True positive&Inferior MI&Extensive myocardial infarction, consider urgent reperfusion therapy if patient's age $<$= 80 years \\
+34&True negative&Normal variant for age&Normal ECG of non-specific anomalies \\
+35&True positive&Inferolateral MI&Meets ST elevation MI criteria,  \newline  atrial fibrillation with rapid ventricular response with PVCs or aberrant ventricular conduction,  \newline  inferior infarct - possibly acute, \newline  Lateral ST elevation consider acute infarct, Anteroseptal ST depression is probably \\
+36&False negative&Inferior MI&ECG override: data quality prohibits interpretation \\
+37&True negative&Meets voltage criteria for LVH&Abnormal ECG unconfirmed, sinus tachycardia,  \newline  Left ventricular hyptertrophy,  \newline  Anterolateral ST-T abnormality is probably due to ventricular hypertrophy \\
+38&True negative&LBBB&Abnormal ECG unconfirmed \\
+39&False negative&Anterior MI&Abnormal ECG unconfirmed,  \newline  Normal sinus rhythm,  \newline  Low voltage QRS,  \newline  Cannot rule out anteroseptal infarct age undetermined \\
+40&False negative&Anterior MI&Abnormal ECG unconfirmed,  \newline  normal sinus rhythm, septal infarct age undetermined \\
+41&False negative&Inferolateral MI&Abnormal ECG unconfirmed,  \newline  sinus bradycardia, \newline  ST elevation, consider early repolarisation, pericarditis, or injury,  \newline  ST abnormality, possible digitalis effect \\
+42&False positive&Early repolarisation&Acute MI suspected,  \newline  abnormal ECG unconfirmed, \newline  sinus bradycardia with sinus arrhythmia, ST elevation consider anterolateral injury or acute infarct,  \newline  ST elevation consider inferior injury or acute infarct \\
+43&False negative&Inferior MI&ECG override: data quality prohibits interpretation \\
+44&False negative&Inferior MI&ECG override: data quality prohibits interpretation \\
+45&False negative&Anterolateral MI&ECG override: data quality prohibits interpretation \\
+46&False negative&Inferior MI&Abnormal ECG unconfirmed \\
+47&False negative&Inferior MI&Abnormal ECG unconfirmed \\
+48&False negative&Anterolateral MI&Abnormal ECG unconfirmed \\
+\end{longtable}
+ \renewcommand{\arraystretch}{1}
+\normalsize

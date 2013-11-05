@@ -1,0 +1,25 @@
+\begin{table}[htbp]
+\begin{minipage}{\linewidth}
+\setlength{\tymax}{0.5\linewidth}
+\centering
+\small
+\caption{Example summary table showing individual ECG answer times}
+\label{egecgtimes}
+ \newcolumntype{K}{>{\centering\arraybackslash}p{0.035\textwidth}}
+ \newcolumntype{N}{>{\centering\arraybackslash}p{0.06\textwidth}}
+ \newcolumntype{O}{>{\centering\arraybackslash}p{0.15\textwidth}}
+\begin{tabulary}{\textwidth}{@{}NKKKKKKKKKKKK@{}} \toprule
+\textbf{ECG ID}&\multicolumn{3}{A}{\textbf{Median correct answer time (secs)}}&\multicolumn{3}{O}{\textbf{Median incorrect answer time (secs)}}&\multicolumn{3}{O}{\textbf{No. Correct answers}}&\multicolumn{3}{O}{\textbf{No. Incorrect answers}}\\
+&V&H&T&V&H&T&V&H&T&V&H&T\\
+\midrule
+1&&&&&&&&&&&&\\
+2\\
+{\ldots}\\
+48\\
+
+\bottomrule
+
+\end{tabulary}
+\end{minipage}
+\end{table}
+

@@ -1,0 +1,66 @@
+This is BibTeX, Version 0.99d (TeX Live 2012)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: Thesis.aux
+The style file: vancouver.bst
+Reallocated glb_str_ptr (elt_size=4) to 20 items from 10.
+Reallocated global_strs (elt_size=20001) to 20 items from 10.
+Reallocated glb_str_end (elt_size=4) to 20 items from 10.
+Reallocated wiz_functions (elt_size=4) to 6000 items from 3000.
+Database file #1: dissertation.bib
+Warning--empty author and editor in department_of_health_treatment_2008
+Warning--missing publisher in department_of_health_treatment_2008
+Warning--missing publisher in ludman_national_2013
+Warning--empty author and editor in the_joint_royal_colleges_ambulance_liaison_committee_pre-hospital_2001
+Warning--empty author and editor in watts_thrombolysis_2013
+Warning--missing publisher in watts_thrombolysis_2013
+Warning--empty author and editor in critical_appraisal_skills_programme_appraising_2013
+Warning--missing publisher in critical_appraisal_skills_programme_appraising_2013
+Warning--empty author and editor in the_cochrane_collaboration_cochrane_2011
+Warning--missing publisher in the_cochrane_collaboration_cochrane_2011
+Warning--empty author and editor in health_and_care_professions_council_standards_2008
+Warning--missing publisher in health_and_care_professions_council_standards_2008
+Warning--empty author and editor in nhs_research_ethics_service_does_2012
+Warning--missing publisher in nhs_research_ethics_service_does_2012
+Warning--empty author and editor in leckie_cross-classified_2013
+You've used 101 entries,
+            3169 wiz_defined-function locations,
+            1297 strings with 37730 characters,
+and the built_in function-call counts, 247027 in all, are:
+= -- 30920
+> -- 1504
+< -- 14
++ -- 1211
+- -- 373
+* -- 21858
+:= -- 26314
+add.period$ -- 452
+call.type$ -- 101
+change.case$ -- 14
+chr.to.int$ -- 36
+cite$ -- 116
+duplicate$ -- 17583
+empty$ -- 24294
+format.name$ -- 447
+if$ -- 57711
+int.to.chr$ -- 0
+int.to.str$ -- 101
+missing$ -- 1110
+newline$ -- 573
+num.names$ -- 101
+pop$ -- 1931
+preamble$ -- 1
+purify$ -- 0
+quote$ -- 0
+skip$ -- 1949
+stack$ -- 0
+substring$ -- 53329
+swap$ -- 2642
+text.length$ -- 2
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 0
+warning$ -- 15
+while$ -- 984
+width$ -- 104
+write$ -- 1237
+(There were 15 warnings)
