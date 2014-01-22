@@ -15,6 +15,8 @@ The following packages are required to be installed in order for these scripts t
 4. plyr
 5. sqldf
 6. lme4
+7. ggplot2
+8. RColorBrewer
 
 
 ### Thesis
