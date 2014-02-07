@@ -1,0 +1,369 @@
+RESPECT Pilot Study - Analysis script
+========================================================
+
+Before you run this RMarkdown script, you need to have processed the data using the RawDataProcess.Rmd file, as this scripts starts by loading in data.frames that have been prepared.
+
+```{r}
+ load("FSD4knitr99.Rdata")
+ load("FSD4knitr.Rdata")
+```
+Load in the files containing the dataframes, FinalStudyData99 and ParticipantData
+Convert the classification column values to a factor (think categorical data)
+```{r}
+ FinalStudyData99$classification <- factor(FinalStudyData99$classification)
+```
+Create two subsets of the data, FSD99CC containing data where the computer was correct (i.e. true positives and true negatives) and FSD99CI, which contains data where the computer was incorrect.
+
+```{r}
+FSD99CC <- subset(FinalStudyData99,FinalStudyData99$truepos==1|FinalStudyData99$trueneg==1)
+FSD99CI <- subset(FinalStudyData99,FinalStudyData99$falsepos==1|FinalStudyData99$falseneg==1)
+```
+The rest of the analysis requires a number of R packages including:
+```{r results='hide',message=FALSE,warning=FALSE}
+require('epitools')
+require('xtable')
+```
+Odds Ratio Table
+------------
+makeBasicORTable is a function that returns the OR table.  By default it will calculate an OR table for all data, unless the variable ORtableName is set to FSD99CC or FSD99CI
+```{r results='hide'}
+ makeBasicORTable <- function(ORtableName='') {
+   # NULL is FinalStudyData99 i.e. all data pairs
+   # FSD99CC - only includes data with correct computer interpretation
+   # FSD99CI - only includes data with incorrect computer interpretation
+   if(ORtableName=='FSD99CC') FSD = FSD99CC
+   else if(ORtableName=='FSD99CI') FSD = FSD99CI
+   else FSD = FinalStudyData99
+   ORT <- epitools::oddsratio(FSD$message_visible,FSD$diag_correct,verbose=T)
+   print(ORT) 
+ } 
+ 
+ ORtable <- makeBasicORTable()
+ ORtableCC <- makeBasicORTable("FSD99CC")
+ ORtableCI <- makeBasicORTable("FSD99CI")
+```
+The resulting tables (note that the predictor is the computer message visibility, 0 for hidden, 1 for visible and outcome is the participant interpretation being correct (1) or incorrect (0):
+
+Odds ratio table for all results
+```{r echo=FALSE}
+ORtable$data
+```
+Odds ratio table for correct computer interpretations
+```{r echo=FALSE}
+ORtableCC$data
+```
+Odds ratio table for incorrect computer interpretations
+```{r echo=FALSE}
+ORtableCI$data
+```
+
+Sensitivity and Specificity
+---------------
+This requires a couple of R packages, epiR() and plyr()
+```{r results='hide',message=FALSE,warning=FALSE}
+require('epiR')
+require('plyr')
+```
+The first step is to create the function to create the tables from which the sensitvity and specificity can be calculated
+```{r}
+makeSStable <- function(SSdf,message) {
+  #Create table to calculate sensitivity and sepcificity stats
+  sPosaPos <- SSdf$freq[SSdf$answer==1&SSdf$stemi==1&SSdf$message_visible==message]
+  sPosaNeg <- SSdf$freq[SSdf$answer==1&SSdf$stemi==0&SSdf$message_visible==message]
+  sNegaPos <- SSdf$freq[SSdf$answer==0&SSdf$stemi==1&SSdf$message_visible==message]
+  sNegaNeg <- SSdf$freq[SSdf$answer==0&SSdf$stemi==0&SSdf$message_visible==message]
+  
+  dat <- as.table(matrix(c(sPosaPos,sPosaNeg,sNegaPos,sNegaNeg), nrow = 2, byrow = TRUE))
+  colnames(dat) <- c("STEMI+","STEMI-")
+  rownames(dat) <- c("PARA+","PARA-")
+  if(message) {
+    cat("Message Visible\n")
+  }
+  else cat("Message Hidden\n")
+  print(dat)
+  # Calculate results of tests using epi.tests
+  # Verbose = T important if you want to capture the output in a variabl
+  epiSS <- epi.tests(dat, conf.level = 0.95, verbose = TRUE)
+  return(epiSS)
+}
+  # Get results for message visible and hidden for all responses.
+  SSdf <- count(FinalStudyData,c("answer","stemi","message_visible"))
+  mesgVisAll <- makeSStable(SSdf,1)
+  mesgHideAll <- makeSStable(SSdf,0)
+
+SStable <- NULL
+# Create table to hold data and add All computer interpretation results
+SStable <- rbind(c("All",round(mesgVisAll$se[[1]]*100),round(mesgVisAll$sp[[1]]*100),round(mesgHideAll$se[[1]]*100),round(mesgHideAll$sp[[1]]*100)))
+
+# Correct computer interpretations
+SSdfCC <- count(subset(FinalStudyData99,FinalStudyData99$computer_diagnosis==FinalStudyData99$stemi),c("answer","stemi","message_visible"))
+mesgVisCC <- makeSStable(SSdfCC,1)
+mesgHideCC <- makeSStable(SSdfCC,0)
+SStable <- rbind(SStable,c("Correct",round(mesgVisCC$se[[1]]*100),round(mesgVisCC$sp[[1]]*100),round(mesgHideCC$se[[1]]*100),round(mesgHideCC$sp[[1]]*100)))
+
+# Incorrect computer interpretations
+SSdfCI <- count(subset(FinalStudyData99,FinalStudyData99$computer_diagnosis!=FinalStudyData99$stemi),c("answer","stemi","message_visible"))
+
+mesgVisCI <- makeSStable(SSdfCI,1)
+mesgHideCI <- makeSStable(SSdfCI,0)
+
+SStable <- rbind(SStable,c("Incorrect",round(mesgVisCI$se[[1]]*100),round(mesgVisCI$sp[[1]]*100),round(mesgHideCI$se[[1]]*100),round(mesgHideCI$sp[[1]]*100)))
+
+SStable <- as.data.frame(SStable)
+colnames(SStable) <- c("Computer interpretation","Sensitivity","Specificity","Sensitivity","Specificity")
+
+```
+The results are created as Latex tables, using the xtable() package as they were then inserted directly into my dissertation.  I've hidden the actual latex code which is generated, but the final table output is this:
+```{r results='hide',message=FALSE,warning=FALSE, echo=FALSE}
+require('xtable')
+
+xtableSS<-xtable(SStable,caption="Summary table of Sensitivities and Specificities of participant responses",label="partsensspec",digits=0)
+
+finalxtableSS<- print.xtable(xtableSS,append=F,table.placement="htbp",caption.placement="top",booktabs=TRUE,include.rownames=FALSE)
+finalxtableSSub <- sub("\\begin{tabular}{lllll}",
+                        "\\newcolumntype{D}{>{\\arraybackslash}p{0.3\\textwidth}}
+                        \\newcolumntype{E}{>{\\centering\\arraybackslash}p{0.12\\textwidth}}
+                        \\newcolumntype{F}{>{\\centering\\arraybackslash}p{0.24\\textwidth}}
+                        \\begin{tabular}{DEE|EE}
+                       & \\multicolumn{2}{F}{Message Visible} & \\multicolumn{2}{F}{Message Hidden} \\\\",finalxtableSS,fixed=T)
+cat(finalxtableSSub,file="Tables/partsensandspec.tex")
+```
+Note that the first 2 columns labelled Sensitivity and Specificity relate to the computer message being visible, and the last 2, when the message was hidden.
+```{r}
+print(SStable)
+```
+
+Generalised Linear Modelling
+--------------------
+Now comes the interesting part!  The GLM models.  These were calculated for all of the data, computer correct interpretations and computer incorrect interpretations
+Initiall, no random effects were included, so no account of clustering was considered.
+Note that the results are the log OR.
+
+```{r}
+# GLM model all computer messages
+fit <-  glm(diag_correct~message_visible,data=FinalStudyData99,family=binomial("logit"))
+summary(fit)
+ 
+ #GLM model with only computer correct messages
+ fitcc <-  glm(diag_correct~message_visible,data=FSD99CC,family=binomial("logit"))
+ summary(fitcc)
+ 
+ #GLM model with only computer INCORRECT messages
+ fitci <-  glm(diag_correct~message_visible,data=FSD99CI,family=binomial("logit"))
+ summary(fitci)
+```
+
+In order to take account of clustering, a random effects or multi-level model was used.  In fact it is a cross-classified model as both the ECG and participant are a cluster on any ECG interpretation attempt.  To do this in R, I user the lme4() package
+```{r results='hide',message=FALSE,warning=FALSE}
+require(lme4)
+```
+As before 3 separate models were calculated, for all data and the subsets of computer correct, and incorrect, interpretation.  Laplacian approximation was used in these models.
+```{r}
+ # GLM model with random effects - all computer messages
+fitGLM <- glmer(diag_correct~1+message_visible+(1|ecg_id)+(1|participant_id),data=FinalStudyData99,family=binomial("logit"))
+summary(fitGLM)
+
+ # GLM model with random effects - all correct computer messages
+ fitGLMcc <- glmer(diag_correct~1+message_visible+(1|ecg_id)+(1|participant_id),data=FSD99CC,family=binomial("logit"))
+ summary(fitGLMcc)
+ 
+ # GLM model with random effects - all incorrect computer messages
+ fitGLMci <- glmer(diag_correct~1+message_visible+(1|ecg_id)+(1|participant_id),data=FSD99CI,family=binomial("logit"))
+ summary(fitGLMci)
+ 
+```
+As before, tables were generated in Latex, which could be directly inserted into the dissertation.  The output and functions are suppressed here, but you can see them in the source code.
+```{r results='hide',message=FALSE,warning=FALSE, echo=FALSE}
+ combiTable <- function(glm,glmre,caption1,label1,filename) {
+   tableOUT <- data.frame((coef(summary(glm))[,c("Estimate","Std. Error","z value","Pr(>|z|)")]),check.names=F)
+   tableOUTCI <- confint(glm)
+   tableOUTCIfinal <- paste(sprintf("%.2f",(tableOUTCI[,1])),sprintf("%.2f",tableOUTCI[,2]),sep=' to ')
+   tableOUT[,1] <- sprintf("%.2f",tableOUT[,1])
+   tableOUT[,2] <- sprintf("%.2f",tableOUT[,2])
+   tableOUT[,3] <- sprintf("%.2f",tableOUT[,3])
+   tableOUT[,4] <- sprintf("%.2f",tableOUT[,4])
+   tableOUT <- cbind(tableOUT, tableOUTCIfinal)
+   parameters<- c("Constant","Message")
+   tableOUT <- cbind(parameters, tableOUT)
+   colnames(tableOUT) <- c("Parameters","Log OR","Standard error","z","P>|z|","95% CI")
+   tableOUT$Parameters <- as.character(tableOUT$Parameters)
+   #Prepare GLM RE model
+   tableOUT1 <- as.data.frame(coef(summary(glmre)))
+   lower <- (tableOUT1[,1]+qnorm(.025)*tableOUT1[,2])
+   upper <- (tableOUT1[,1]+qnorm(.975)*tableOUT1[,2])
+   tableOUTCIfinal <- paste(sprintf("%.2f",lower),sprintf("%.2f",upper),sep=' to ')
+   tableOUT1 <- cbind(round(tableOUT1,3), tableOUTCIfinal)
+   parameters<- c("Constant","Message")
+   tableOUT1[,1] <- sprintf("%.2f",tableOUT1[,1])
+   tableOUT1[,2] <- sprintf("%.2f",tableOUT1[,2])
+   tableOUT1[,3] <- sprintf("%.2f",tableOUT1[,3])
+   tableOUT1[,4] <- sprintf("%.2f",tableOUT1[,4])
+   tableOUT1 <- cbind(parameters, tableOUT1)
+   colnames(tableOUT1) <- c("Parameters","Log OR","Standard error","z","P>|z|","95% CI")
+   tableOUT <- rbind(c("GLM",NA,NA,NA,NA,NA),tableOUT)
+   tableOUT <- rbind(tableOUT,c("RE",NA,NA,NA,NA,NA)) 
+   tableOUT <- rbind(tableOUT,tableOUT1)
+   tableOUT <- rbind(tableOUT,c("sigzma",NA,NA,NA,NA,NA))
+   tableOUT <- rbind(tableOUT,c("$\\sigma^2_{ecg}$",round(VarCorr(fitGLM)$ecg_id[1],2),NA,NA,NA,NA))
+   tableOUT <- rbind(tableOUT,c("$\\sigma^2_{participant}$",round(VarCorr(fitGLM)$participant[1],2),NA,NA,NA,NA))
+   colnames(tableOUT) <- c("Parameters","Log OR","Standard error","z","P$>$$|z|$","95\\% CI")
+   table1 <- xtable(tableOUT,caption=caption1,label=label1,align=c("l","l","c","c","c","c","c"))
+   finalTable <- print(table1,append=F,table.placement="htbp",caption.placement="top",include.rownames=FALSE,booktabs=T,sanitize.text.function = function(x) x)
+  # cat(finalTable)
+   finalTable <- sub("GLM &  &  &  &  &  \\\\","\\textit{Unadjusted} &  &  &  &  & \\\\",finalTable,fixed=T)
+   
+   finalTable <- sub("RE &  &  &  &  &  \\\\","\\midrule
+  \\textit{Adjusted} &  &  &  &  & \\\\",finalTable,fixed=T)
+   
+   finalTable <- sub("sigzma &  &  &  &  &  \\\\ ","\\midrule ",finalTable,fixed=T)
+   finalTable <- sub("\\begin{tabular}{lccccc}",
+                       "\\newcolumntype{U}{>{\\centering\\arraybackslash}p{0.08\\textwidth}}
+\\newcolumntype{V}{>{\\centering\\arraybackslash}p{0.1\\textwidth}}
+\\newcolumntype{W}{>{\\arraybackslash}p{0.31\\textwidth}}
+\\newcolumntype{X}{>{\\centering\\arraybackslash}p{0.15\\textwidth}}
+\\begin{tabular}{WUVUUX}",finalTable,fixed=T)
+   print(finalTable)
+   cat(finalTable)
+   cat(finalTable,file=paste("Tables/",filename,sep=''))
+ }
+ 
+ combiTable(fit,fitGLM,"Log odds ratio of correct answer with all messages","lormesgall","logORtablesmesg.tex")
+ combiTable(fitcc,fitGLMcc,"Log odds ratio of correct answer and correct computer messages","lormesgcc","logORtablesmesgcc.tex")
+ combiTable(fitci,fitGLMci,"Log odds ratio of correct answer and incorrect computer messages","lormesgci","logORtablesmesgci.tex")
+ 
+ #--------- COMBINED OR TABLES WITH RANDOM EFFECTS ----------
+ combiTableEXP <- function(glm,glmre,caption1,label1,filename) {
+   tableOUT <- data.frame((coef(summary(glm))[,c("Estimate","z value","Pr(>|z|)")]),check.names=F)
+   tableOUT[,1] <- exp(tableOUT[,1])
+   tableOUTCI <- exp(confint(glm))
+   tableOUTCIfinal <- paste(sprintf("%.2f",tableOUTCI[,1]),sprintf("%.2f",tableOUTCI[,2]),sep=' to ')
+   tableOUT[,1] <- sprintf("%.2f",tableOUT[,1])
+   tableOUT[,2] <- sprintf("%.2f",tableOUT[,2])
+   tableOUT[,3] <- sprintf("%.2f",tableOUT[,3])
+   tableOUT <- cbind(tableOUT, tableOUTCIfinal)
+   parameters<- c("Constant","Message")
+   tableOUT <- cbind(parameters, tableOUT)
+   colnames(tableOUT) <- c("Parameters","OR","z","P>|z|","95% CI")
+   tableOUT$Parameters <- as.character(tableOUT$Parameters)
+   #print(tableOUT)
+   #Prepare GLM RE model
+   tableOUT1 <- as.data.frame(coef(summary(glmre)))
+   #str(tableOUT1)
+   #print(tableOUT1)
+   lower <- (tableOUT1[,1]+qnorm(.025)*tableOUT1[,2])
+   upper <- (tableOUT1[,1]+qnorm(.975)*tableOUT1[,2])
+   tableOUT1CIfinal <- paste(sprintf("%.2f",exp(lower)),sprintf("%.2f",exp(upper)),sep=' to ')
+   #tableOUT1 <- cbind(tableOUT1, tableOUT1CIfinal)
+   parameters<- c("Constant","Message")
+   tableOUT1[,1] <- sprintf("%.2f",exp(tableOUT1[,1]))
+   tableOUT1[,2] <- sprintf("%.2f",tableOUT1[,3])
+   tableOUT1[,3] <- sprintf("%.2f",tableOUT1[,4])
+   tableOUT1[,4] <- tableOUT1CIfinal
+   tableOUT1 <- cbind(parameters, tableOUT1)
+   colnames(tableOUT1) <- c("Parameters","OR","z","P>|z|","95% CI")
+  # print(tableOUT1)
+   tableOUT <- rbind(c("GLM",NA,NA,NA,NA),tableOUT)
+   tableOUT <- rbind(tableOUT,c("RE",NA,NA,NA,NA)) 
+   tableOUT <- rbind(tableOUT,tableOUT1)
+   tableOUT <- rbind(tableOUT,c("sigzma",NA,NA,NA,NA))
+   tableOUT <- rbind(tableOUT,c("$\\sigma^2_{ecg}$",round(VarCorr(fitGLM)$ecg_id[1],2),NA,NA,NA))
+   tableOUT <- rbind(tableOUT,c("$\\sigma^2_{participant}$",round(VarCorr(fitGLM)$participant[1],2),NA,NA,NA))
+   colnames(tableOUT) <- c("Parameters","OR","z","P$>$$|z|$","95\\% CI")
+  # print(tableOUT)
+   table1 <- xtable(tableOUT,caption=caption1,label=label1,align=c("l","l","c","c","c","c"))
+   finalTable <- print(table1,append=F,table.placement="htbp",caption.placement="top",include.rownames=FALSE,booktabs=T,sanitize.text.function = function(x) x)
+   # cat(finalTable)
+   finalTable <- sub("GLM &  &  &  &  \\\\","\\textit{Unadjusted for clustering}  &  &  &  & \\\\",finalTable,fixed=T)
+   
+   finalTable <- sub("RE &  &  &  &  \\\\","\\midrule
+  \\textit{Adjusted for clustering} &  &  &  & \\\\",finalTable,fixed=T)
+   
+   finalTable <- sub("sigzma &  &  &  &  \\\\ ","\\midrule ",finalTable,fixed=T)
+   cat(finalTable,file=paste("Tables/",filename,sep=''))
+ }
+ 
+ combiTableEXP(fit,fitGLM,"Odds ratio of correct interpretation","ormesgall","ORtablesmesg.tex")
+ combiTableEXP(fitcc,fitGLMcc,"Odds ratio of correct interpretation with correct computer message","ormesgcc","ORtablesmesgcc.tex")
+ combiTableEXP(fitci,fitGLMci,"Odds ratio of correct interpretation with incorrect computer message","ormesgci","ORtablesmesgci.tex")
+```
+Intraclass Correlation Coefficients (ICC)
+------------------------
+The ICC for participants and ECGs were calculated, since these will be required for future sample size calculations in the main study.
+```{r}
+xVars <- function(model) {
+   exvars = lme4::VarCorr(model)
+   vars = c(exvars$ecg_id[1,1], exvars$participant_id[1,1]) 
+   names(vars) <- c('ecg var', 'participant var')
+   vars 
+ }
+ 
+ # helper function for ICC(k) variations
+ icck <- function(variances, var='both') {
+   # Binomial distribution (logit), residual variance fixed at pi*2/3
+   resVar <- (pi*2/3)
+   if(var=='ecg')  icc = variances[1] / (variances[1] + variances[2] + resVar)
+   else if(var=='participant') icc = variances[2] / (variances[1] + variances[2] + resVar)
+   else icc = (variances[1] + variances[2]) / (variances[1] + variances[2] + resVar)
+ }
+```
+The model fitGLMOnly, only includes the random effects i.e. ECG and pariticipant
+```{r}
+ fitGLMOnly <- glmer(diag_correct~(1|ecg_id)+(1|participant_id),data=FinalStudyData99,family=binomial("logit"))
+
+```
+The combined ICC value for participants and ECGs is `r icck(xVars(fitGLMOnly))[[1]]`
+
+The ICC value for participants is `r icck(xVars(fitGLMOnly),'ecg')[[1]]`
+
+The combined ICC value for participants and ECGs is `r icck(xVars(fitGLMOnly),'participant')[[1]]`
+
+QQ-plots
+-----------
+Just for fun, I calculated some QQ-plots for the data using a function from http://stackoverflow.com/questions/13847936/in-r-plotting-random-effects-from-lmer-lme4-package-using-qqmath-or-dotplot
+
+```{r}
+ ggCaterpillar <- function(re, QQ=TRUE, likeDotplot=TRUE,thetitle="ggCaterpillar") {
+   require(ggplot2)
+   f <- function(x) {
+     pv   <- attr(x, "postVar")
+     cols <- 1:(dim(pv)[1])
+     se   <- unlist(lapply(cols, function(i) sqrt(pv[i, i, ])))
+     ord  <- unlist(lapply(x, order)) + rep((0:(ncol(x) - 1)) * nrow(x), each=nrow(x))
+     pDf  <- data.frame(y=unlist(x)[ord],
+                        ci=1.96*se[ord],
+                        nQQ=rep(qnorm(ppoints(nrow(x))), ncol(x)),
+                        ID=factor(rep(rownames(x), ncol(x))[ord], levels=rownames(x)[ord]),
+                        ind=gl(ncol(x), nrow(x), labels=names(x)))
+     if(QQ) {  ## normal QQ-plot
+       p <- ggplot(pDf, aes(nQQ, y))
+       p <- p + facet_wrap(~ ind, scales="free")
+       p <- p + xlab("Standard normal quantiles") + ylab("Random effect quantiles")
+     } else {  ## caterpillar dotplot
+       p <- ggplot(pDf, aes(ID, y)) + coord_flip()
+       if(likeDotplot) {  ## imitate dotplot() -> same scales for random effects
+         p <- p + facet_wrap(~ ind)
+       } else {           ## different scales for random effects
+         p <- p + facet_grid(ind ~ ., scales="free_y")
+       }
+       # Custom xlabels just for this study
+       p <- p + xlab("RE variable ID") + ylab("Random effects")
+     }
+     
+     p <- p + theme(legend.position="none")
+     p <- p + geom_hline(yintercept=0)
+     p <- p + geom_errorbar(aes(ymin=y-ci, ymax=y+ci), width=0, colour="black")
+     p <- p + geom_point(aes(size=1.2), colour="blue") 
+     p <- p + ggtitle(thetitle)
+     return(p)
+   }
+   
+   lapply(re, f)
+ }
+ 
+ # Print plots for RE variance
+ print(ggCaterpillar(ranef(fitGLM, postVar=TRUE), QQ=FALSE, likeDotplot=FALSE,"Random effects plots - all data"))
+ # Just correct computer interpretations
+ print(ggCaterpillar(ranef(fitGLMcc, postVar=TRUE), QQ=FALSE, likeDotplot=FALSE,"Random effects plots - computer correct"))
+ # Just incorrect computer interpretations
+ print(ggCaterpillar(ranef(fitGLMci, postVar=TRUE), QQ=FALSE, likeDotplot=FALSE,"Random effects plots - computer incorrect"))
+```

@@ -1,0 +1,213 @@
+RESPECT pilot study - Raw Data Processing script
+========================================================
+
+This is an R Markdown document that processes the raw data from the study website and prepares it for analysis, as well as calculating values for the CONSORT diagram.
+
+Note that the data is not included here, but is available on request, but contacting the study investigater using the email address: admin@ambulanceresearch.co.uk.
+
+You should place the raw CSV files in a folder call Pilot-Raw-Data.
+
+1. Enrollment
+-----------
+
+First, create two data.frames with the raw data:
+```{r}
+StudyData <- read.csv("Pilot-Raw-Data/StudyData.csv")
+ParticipantData <- read.csv("Pilot-Raw-Data/ParticipantStudyData.csv")
+```
+
+Then remove all study data that relates to users who have not consented
+```{r}
+ParticipantData <- subset(ParticipantData,ParticipantData$consented==1)
+```
+
+```{r}
+numberConsented <- nrow(ParticipantData)
+numberStage1Finish <- nrow(subset(ParticipantData, ParticipantData$stage1==1))
+numberStage2Finish <- nrow(subset(ParticipantData, ParticipantData$stage2==1))
+```
+The code chunk above tells us that **`r numberConsented`** participants consented, and of those, **`r numberStage1Finish`** completed stage 1, i.e. viewed all of the first 12 ECGs, and **`r numberStage2Finish`** completed the second stage and therefore, provide a full data set.
+
+Next, we'll calculate the number of particpants who did, and did not, complete the demographic information, that is collected just before the participants view the ECGs.
+
+```{r}
+numberNoDemographic <- nrow(subset(ParticipantData,is.na(ParticipantData$trainroute)))
+numberYesDemographicNoEcg <- nrow(subset(ParticipantData,!is.na(ParticipantData$trainroute)&ParticipantData$ecg_views==0))
+```
+**`r numberNoDemographic`** participants did not fill in any demographic information, whereas **`r numberYesDemographicNoEcg`** did, but then failed to view any of the study ECGs.
+
+2. Allocation
+------------
+
+```{r}
+numberEcgsAllocated <- length(unique(StudyData$ecg_id))
+numberEcgsNotAllocated <- 48-numberEcgsAllocated
+```
+This code chunk will tells us that of the 48 ECGs that could be allocated, **`r numberEcgsAllocated`** were allocated to participants.
+
+```{r}
+numberParticipantsFailFinishStage1 <- nrow(subset(ParticipantData, ParticipantData$stage1==0))
+```
+This code chunk tells us that **`r numberParticipantsFailFinishStage1`** did not complete Stage 1 of the study.
+
+To complete some of the other processes, we need the package plyr(), which contains the count() and ddply() functions.
+```{r results='hide',message=FALSE,warning=FALSE}
+require(plyr)
+```
+The code chunk below creates a new data.frame which contains the frequencies of the various combinations of stage1,stage2 completion, message_visible and answer.  So, for example, it will be possible to calculate how many responses there are from participants completed stage 1 and stage 2, when a computer interpretation message was visible.  The first six rows are shown to give you an idea.
+
+```{r}
+summaryOfResponses <- count(StudyData,c("stage1","stage2","message_visible","answer"))
+head(summaryOfResponses)
+```
+
+In the answer column, there are a couple of results that need explaining.  The **NA** value means that the ECG was never viewed or attempted.  When participants consent into the study and complete the demographic info, they are then allocated the ECGs.  If they never view the ECG, then there is no answer.  However, if they view an ECG, but fail to provide a response within 60 seconds, then the ECG is automatically removed from view and the code **99** allocated.
+
+```{r}
+failedPhase1EcgsWithMessage <- sum(summaryOfResponses$freq[summaryOfResponses$stage1==0 & summaryOfResponses$message_visible==1 & is.na(summaryOfResponses$answer)])
+failedPhase1EcgsNoMessage <- sum(summaryOfResponses$freq[summaryOfResponses$stage1==0 & summaryOfResponses$message_visible==0 & is.na(summaryOfResponses$answer)])
+
+failedPhase1EcgsTotal <- failedPhase1EcgsWithMessage + failedPhase1EcgsNoMessage
+
+failedPhase1Data <- subset(ParticipantData, ParticipantData$stage1==0 & !is.na(ParticipantData$trainroute))
+medianPhase1FailEcgsViewed <- median(failedPhase1Data$ecg_views)
+```
+From the code chunk above, we know that:
+- **`r failedPhase1EcgsTotal`** ECGs were allocated to participants who failed to complete stage 1.
+- **`r failedPhase1EcgsWithMessage`** ECGs were allocated to participants who failed to complete stage 1, had a message visible and were NOT answered.
+- **`r failedPhase1EcgsNoMessage`** ECGs were allocated to participants who failed to complete stage 1, had the message hidden and were NOT answered.
+- The median number of ECGs viewed by participants who failed to complete stage 1 was **`r medianPhase1FailEcgsViewed`**
+
+3. Crossover
+-----------
+```{r}
+numberParticipantsFailFinishStage2 <- nrow(subset(ParticipantData, ParticipantData$stage1==1&ParticipantData$stage2==0))
+
+failedPhase2EcgsWithMessage <- sum(summaryOfResponses$freq[summaryOfResponses$stage1==1 & summaryOfResponses$stage2==0 & summaryOfResponses$message_visible==1 & is.na(summaryOfResponses$answer)])
+failedPhase2EcgsNoMessage <- sum(summaryOfResponses$freq[summaryOfResponses$stage1==1 & summaryOfResponses$stage2==0 & summaryOfResponses$message_visible==0 & is.na(summaryOfResponses$answer)])
+
+failedPhase2EcgsTotal <- failedPhase2EcgsWithMessage + failedPhase2EcgsNoMessage
+
+failedPhase2Data <- subset(ParticipantData, ParticipantData$stage1==1 & ParticipantData$stage2==0 & !is.na(ParticipantData$trainroute))
+medianPhase2FailEcgsViewed <-median(failedPhase2Data$ecg_views)
+```
+From the code chunk above, **`r numberParticipantsFailFinishStage2`** participants who completed stage 1, failed to complete stage 2.
+In addition:
+- **`r failedPhase2EcgsTotal`** ECGs were allocated to participants who failed to complete stage 2.
+- **`r failedPhase2EcgsWithMessage`** ECGs were allocated to participants who failed to complete stage 2, had a message visible and were NOT answered.
+- **`r failedPhase2EcgsNoMessage`** ECGs were allocated to participants who failed to complete stage 2, had the message hidden and were NOT answered.
+- The median number of ECGs viewed by participants who failed to complete stage 2 was **`r medianPhase2FailEcgsViewed`**
+
+4. Follow-up
+-------------
+No calculations needed for this section.  No participants were lost to follow-up, or withdrew consent.
+
+5. Analysis
+------------
+This section does not actually perform the analysis, just calculates the data that is suitable for analysis.  This is a large code chunk, which is heavily annotated and pretty much explains everything.  The data used for the subsequent analysis, only includes completed data i.e. FinalStudyData.
+
+
+```{r results='hide',message=FALSE,warning=FALSE}
+#Keep original data
+StudyDataNA <- StudyData
+
+# Remove all rows with NA in the answer field
+StudyData <- subset(StudyData,!is.na(StudyData$answer))
+
+# Add True+, True-, False+, False- columns
+StudyData$truepos <- ifelse(StudyData$stemi==1 & StudyData$computer==1, 1, 0)
+StudyData$trueneg <- ifelse(StudyData$stemi==0 & StudyData$computer==0, 1, 0)
+StudyData$falsepos <- ifelse(StudyData$stemi==0 & StudyData$computer==1, 1, 0)
+StudyData$falseneg <- ifelse(StudyData$stemi==1 & StudyData$computer==0, 1, 0)
+
+# Add Classiciation column (handy for boxplot later on...)
+# 1: True Positive
+# 2: True Negative
+# 3: False Positive
+# 4: False Negative
+
+StudyData$classification <- ifelse(StudyData$stemi==1 & StudyData$computer==1, "TP", ifelse(StudyData$stemi==0 & StudyData$computer==0,"TN",ifelse(StudyData$stemi==0 & StudyData$computer==1,"FP","FN")))
+
+# Add CC column to denote whether computer is correct or not (1 or 0)
+StudyData$cc = ifelse(StudyData$truepos==1|StudyData$trueneg==1,1,0)
+
+# Create column diag_correct which will provide 1,0 as to whether answer matches
+# actual diagnosis.  There is a 99 flag for responses which were automatically 
+# returned after 60 seconds.  
+#
+# StudyData99 will include these as incorrect responses i.e. diag_correct = 0
+# StudyData will not include any answers with a response of 99
+
+StudyData99 <- StudyData
+StudyData <- subset(StudyData,StudyData$answer != 99)
+
+# Add diag_correct column
+StudyData$diag_correct <- ifelse(StudyData$stemi==StudyData$answer,1,0)
+StudyData99$diag_correct <- ifelse(StudyData99$stemi==StudyData99$answer,1,0)
+
+# Create FinalData which will hold pairs of data suitable for determing whether
+# the message has an effect on correct diagnosis of the ECG
+# As before, a '99' option will be included, incorporating data where the timer expired
+# prior to the participant making a decision
+
+unpairedFinalData <- ddply(StudyData,c("participant_id","ecg_id"),function(x)if(nrow(x)<2)StudyData[which(StudyData$quiz_id==x$quiz_id[1]),])
+unpairedFinalData99 <- ddply(StudyData99,c("participant_id","ecg_id"),function(x)if(nrow(x)<2)StudyData99[which(StudyData99$quiz_id==x$quiz_id[1]),])
+
+# save unpaired data for possible sub-analysis
+save(unpairedFinalData, file="FSDUnpaired4knitr.Rdata")
+
+# Load sqldf library in order to remove unpairedData from StudyData
+require(sqldf,quietly=TRUE)
+
+# Generate FinalStudyData (and 99) data frame
+FinalStudyData <- sqldf('SELECT * FROM StudyData EXCEPT SELECT * FROM unpairedFinalData')
+FinalStudyData99 <- sqldf('SELECT * FROM StudyData99 EXCEPT SELECT * FROM unpairedFinalData99')
+
+# Remove anyone who has not completed both stages 
+FinalStudyData <- subset(FinalStudyData,FinalStudyData$stage1==1&FinalStudyData$stage2==1)
+FinalStudyData99 <- subset(FinalStudyData99,FinalStudyData99$stage1==1&FinalStudyData99$stage2==1)
+howmany <- unique(FinalStudyData99$participant_id)
+
+# Reorginaise data so that it is in order of Participants and then ECGs
+FinalStudyData <- ddply(FinalStudyData,c("participant_id","ecg_id"),transform)
+FinalStudyData99 <- ddply(FinalStudyData99,c("participant_id","ecg_id"),transform)
+```
+For the analysis in the pilot study, the '99' variant of the data was used.  This included unaswered ECGs, that had been viewed by participants, but a choice about whether a STEMI was present or not, had not been made.  These were marked as incorrect for the analysis.
+Therefore, for the RESPECT pilot, there were **`r nrow(FinalStudyData99)/2`** pairs of responses suitable for analysis and **`r nrow(unpairedFinalData99)`** responses were orphans, i.e. did not have a corresponding response when the message was either visible and hidden.
+
+Next we can work out the median number of particpants who provded a pair of responses (when the message was hidden and visible) for each ECG
+```{r}
+unique99 <- FinalStudyData99[c("ecg_id","participant_id")]
+unique299 <- ddply(unique99,c("ecg_id","participant_id"),function(x)x[1,])
+data <- count(unique299,c('ecg_id'))
+```
+From this code chunk it is possible to work out the median value, which is **`r median(data$freq)`**.
+
+The final step is to save the data.frames in their own files, which makes it easier to import them into other scripts
+```{r}
+save(FinalStudyData, file="FSD4knitr.Rdata")
+save(StudyData, file="SD4knitr.Rdata")
+save(StudyData99, file="SD994knitr.Rdata")
+save(StudyDataNA, file="SDNA4knitr.Rdata")
+save(FinalStudyData99, file="FSD4knitr99.Rdata")
+save(ParticipantData, file="PD4knitr.Rdata")
+save(unpairedFinalData99, file="UP994knitr.Rdata")
+```
+
+MLWin
+------------
+During my research into the analysis of these results, I came across the package MLWin (http://www.bristol.ac.uk/cmm/software/mlwin/).  In order to use the data in this package, a constants column was added to the data (with the value 1) as well as saving the entire data set, as well as data for just the compute correct and incorrect interpretations.
+```{r}
+FSD99MLWin <- FinalStudyData99
+
+FSD99MLWin$cons <- 1
+
+#  FSD99CC - Return subset of data where computer was correct
+FSD99CC <- subset(FSD99MLWin,FSD99MLWin$truepos==1|FSD99MLWin$trueneg==1)
+# FSD99CI <- Return subset of data where computer was incorrect
+FSD99CI <- subset(FSD99MLWin,FSD99MLWin$falsepos==1|FSD99MLWin$falseneg==1)
+
+write.csv(FSD99MLWin, file="FSD4MLWin.csv",row.names=FALSE)
+write.csv(FSD99CC, file="FSD4MLWinCC.csv",row.names=FALSE)
+write.csv(FSD99CI, file="FSD4MLWinCI.csv",row.names=FALSE)
+```

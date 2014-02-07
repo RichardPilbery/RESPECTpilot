@@ -1,0 +1,370 @@
+RESPECT Pilot Study - Descriptive data and other stuff
+========================================================
+
+This RMarkdown document contains the code used to create various tables and plots, some of which were used in my dissertation, and some that was not.
+
+```{r results='hide',message=FALSE,warning=FALSE,echo=FALSE}
+load("PD4knitr.Rdata")
+load("FSD4knitr99.Rdata")
+load("FSD4knitr.Rdata")
+load("SD4knitr.Rdata")
+load("SD994knitr.Rdata")
+load("SDNA4knitr.Rdata")
+load("UP994knitr.Rdata")
+```
+
+Participant Data
+-----------
+These are all latex tables and so are not shown here (see the source code, if you are really interested)
+```{r results='hide',message=FALSE,warning=FALSE,echo=FALSE}
+# http://www.stattler.com/article/export-table-created-r-tex-file
+
+makeParticipantTable <- function(whichP='') {
+  if(whichP=='nofinish') {
+    PD = subset(ParticipantData,(ParticipantData$stage1==0|ParticipantData$stage2==0)&!is.na(ParticipantData$trainroute))
+    captionC = "Summary table of participant characteristics who failed to complete study"
+    labelC = "partcharnofinish"
+    filename = "partcharNF.tex"
+  }
+  else if(whichP=='finish') {
+    PD = subset(ParticipantData,(ParticipantData$stage1==1&ParticipantData$stage2==1)&!is.na(ParticipantData$trainroute))
+    captionC = "Summary table of participant characteristics who completed study"
+    labelC = "partcharfinish"
+    filename = "partcharF.tex"
+  }
+  else {
+    PD=ParticipantData
+    captionC = "Summary table of participant characteristics"
+    labelC = "partcharfull"
+    filename = "partchar.tex"
+  }
+  
+tr1PD <- nrow(subset(PD, PD$trainroute==1))
+tr2PD <- nrow(subset(PD, PD$trainroute==2))
+totPD <- tr1PD+tr2PD
+  
+pc <- c('Training route:',' ',' ',' ',' ',' ',' ')
+pc <- rbind(pc,c("Traditional",paste(tr1PD,' (',round((tr1PD/totPD)*100),'%)',sep=''),'-','-','-','-','-'))
+  pc <- rbind(pc,c("University",paste(tr2PD,' (',round((tr2PD/totPD)*100),'%)',sep=''),'-','-','-','-','-'))
+  pc <- rbind(pc,c("Service (yrs)",'-',fivenum(PD$serviceyears)))
+pc <- rbind(pc,c("CPD (hrs)",'-',fivenum(PD$cpdhours)))
+pc <- rbind(pc,c("pPCI patients",'-',fivenum(PD$pcipts)))
+colnames(pc) <- c("Characteristic","n","Lowest value","Lower quartile","Median","Upper quartile","Highest value")
+pc <- data.frame(pc, check.names=F)
+library(xtable)
+tablepc<-xtable(pc,caption=captionC,label=labelC,)
+  finalTablepc <- print(tablepc,append=F,table.placement="htbp",caption.placement="top",include.rownames=FALSE,sanitize.colnames.function = identity)
+  # Post-processing, need to change tabular line of outputted file
+  finalTablepc <- sub("\\begin{tabular}{lllllll}",
+                      "\\newcolumntype{K}{>{\\centering\\arraybackslash}p{0.13\\textwidth}}
+\\newcolumntype{N}{>{\\centering\\arraybackslash}p{0.095\\textwidth}}
+\\newcolumntype{B}{>{\\arraybackslash}p{0.17\\textwidth}}
+\\begin{tabular}{BKNNNNN}",finalTablepc,fixed=T)
+  print(finalTablepc)
+  cat(finalTablepc,file=paste("Tables/",filename,sep=''))
+}
+
+makeParticipantTable()
+makeParticipantTable('nofinish')
+makeParticipantTable('finish')
+```
+Summary of participant interaction with ECGs
+-----------------------
+The first table to be created is a summary table of all 48 ECGs, which is not shown here
+```{r results='hide',message=FALSE,warning=FALSE,echo=FALSE}
+ecg <- 1:48
+ecg <- data.frame(ecg)
+
+ecgFSD <- 1:48
+ecgFSD <- data.frame(ecgFSD)
+
+require("plyr")
+require("reshape2")
+
+# Generate 3 data.frames which contain counts of attempts with message visible, hidden and total
+ecgvis <- dcast(StudyDataNA, ecg_id~answer, length, value.var="quiz_id", subset=.(message_visible==1))
+ecghide <- dcast(StudyDataNA, ecg_id~answer, length, value.var="quiz_id", subset=.(message_visible==0))
+ecgall <- dcast(StudyDataNA, ecg_id~answer, length, value.var="quiz_id")
+
+ecgvisFSD <- dcast(FinalStudyData99, ecg_id~answer, length, value.var="quiz_id", subset=.(message_visible==1))
+ecghideFSD <- dcast(FinalStudyData99, ecg_id~answer, length, value.var="quiz_id", subset=.(message_visible==0))
+ecgallFSD <- dcast(FinalStudyData99, ecg_id~answer, length, value.var="quiz_id")
+
+# Create columns for Attempts
+ecg$attempt_v <- ecgvis[,2]+ecgvis[,3]
+ecg$attempt_h <- ecghide[,2]+ecghide[,3]
+ecg$attempt_tot <- ecgall[,2]+ecgall[,3]
+
+ecgFSD$attempt_v <- ecgvisFSD[,2]+ecgvisFSD[,3]
+ecgFSD$attempt_h <- ecghideFSD[,2]+ecghideFSD[,3]
+ecgFSD$attempt_tot <- ecgallFSD[,2]+ecgallFSD[,3]
+
+# Create column for number of data pairs
+ecgDataPairs <- dcast(StudyData99,ecg_id~message_visible, length, value.var="quiz_id")
+ecgDataPairsFSD <- dcast(FinalStudyData99,ecg_id~message_visible, length, value.var="quiz_id")
+ecg$dataPairs <- ecgDataPairs[,2]
+ecgFSD$dataPairs <- ecgDataPairsFSD[,2]
+
+# Create columns for answer==99
+ecgOverSixtyVis <- dcast(subset(StudyData99,!is.na(StudyData99$answer_time)),ecg_id~answer, length, value.var="ecg_id", subset=.(message_visible==1,answer==99))
+ecgOverSixtyHide <- dcast(subset(StudyData99,!is.na(StudyData99$answer_time)),ecg_id~answer, length, value.var="ecg_id", subset=.(message_visible==0,answer==99))
+ecgOverSixtyTot <- dcast(subset(StudyData99,!is.na(StudyData99$answer_time)),ecg_id~answer, length, value.var="ecg_id", subset=.(answer==99))
+
+ecgOverSixtyVisFSD <- dcast(subset(FinalStudyData99,!is.na(FinalStudyData99$answer_time)),ecg_id~answer, length, value.var="ecg_id", subset=.(message_visible==1,answer==99))
+ecgOverSixtyHideFSD <- dcast(subset(FinalStudyData99,!is.na(FinalStudyData99$answer_time)),ecg_id~answer, length, value.var="ecg_id", subset=.(message_visible==0,answer==99))
+ecgOverSixtyTotFSD <- dcast(subset(FinalStudyData99,!is.na(FinalStudyData99$answer_time)),ecg_id~answer, length, value.var="ecg_id", subset=.(answer==99))
+
+# Populate with 0 values
+ecg$noAns_v[1:48] <- 0
+ecg$noAns_h[1:48] <- 0
+ecg$noAns_tot[1:48] <- 0
+
+ecgFSD$noAns_v[1:48] <- 0
+ecgFSD$noAns_h[1:48] <- 0
+ecgFSD$noAns_tot[1:48] <- 0
+# Replace appropriate rows with values
+ecg$noAns_v[ecgOverSixtyVis$ecg_id] <- ecgOverSixtyVis$'99'
+ecg$noAns_h[ecgOverSixtyHide$ecg_id] <- ecgOverSixtyHide$'99'
+ecg$noAns_tot[ecgOverSixtyTot$ecg_id] <- ecgOverSixtyTot$'99'
+
+ecgFSD$noAns_v[ecgOverSixtyVisFSD$ecg_id] <- ecgOverSixtyVisFSD$'99'
+ecgFSD$noAns_h[ecgOverSixtyHideFSD$ecg_id] <- ecgOverSixtyHideFSD$'99'
+ecgFSD$noAns_tot[ecgOverSixtyTotFSD$ecg_id] <- ecgOverSixtyTotFSD$'99'
+
+ecg$noAns_v <- as.integer(ecg$noAns_v)
+ecg$noAns_h <- as.integer(ecg$noAns_h)
+ecg$noAns_tot <- as.integer(ecg$noAns_tot)
+
+ecgFSD$noAns_v <- as.integer(ecgFSD$noAns_v)
+ecgFSD$noAns_h <- as.integer(ecgFSD$noAns_h)
+ecgFSD$noAns_tot <- as.integer(ecgFSD$noAns_tot)
+
+# Create columns for unviewed ECGs
+ecg$unviewed_v <- ecgvis[,5]
+ecg$unviewed_h <- ecghide[,5]
+ecg$unviewed_tot <- ecgall[,5]
+
+#Don't need this for ecgFSD as these are no NA values in FinalStudyData99
+
+# Add in excluded data from unpairedFinalData
+ecgExcl <- dcast(unpairedFinalData99, ecg_id~answer, length, value.var="quiz_id")
+ecg$excl <- ecgExcl[,2]+ecgExcl[,3]+ecgExcl[,4]
+
+#Don't need this for ecgFSD as these are no unpaired values in FinalStudyData99
+
+
+require(xtable)
+tableecg<-xtable(ecg,caption="Summary table of ECG interpretation attempts",label="partsumecginteract",digits=0)
+print.xtable(tableecg,file="Tables/partsumecginteract-middle.tex",append=F,include.rownames=FALSE, only.contents=TRUE, include.colnames=FALSE,booktabs=T)
+
+# ------------------------ SUMMARY TABLE FOR ECG TIMES -----------------------------
+
+ecgtimeSummary <- 1:48
+ecgtimeSummary <- data.frame(ecgtimeSummary)
+
+# Generate 3 data.frames which contain median correct answer times with message visible, hidden and total
+ecgtime <- subset(StudyData99, select=c("ecg_id","message_visible","diag_correct","answer_time"))
+#ecgtime <- ecgtime[complete.cases(ecgtime),]
+
+ecgtime_vis <- dcast(ecgtime, ecg_id~diag_correct, median, value.var="answer_time", subset=.(message_visible==1), fill=NaN, na.rm=T)
+ecgtime_hide <- dcast(ecgtime, ecg_id~diag_correct, median, value.var="answer_time", subset=.(message_visible==0), fill=NaN,na.rm=T)
+ecgtime_tot <- dcast(ecgtime, ecg_id~diag_correct, median, value.var="answer_time", fill=NaN,na.rm=T)
+
+# Insert time results into ecgtimeSummary
+ecgtimeSummary$med_cor_vis <- ecgtime_vis$`1`
+ecgtimeSummary$med_cor_hide <- ecgtime_hide$`1`
+ecgtimeSummary$med_cor_tot <- ecgtime_tot$`1`
+
+ecgtimeSummary$med_incor_vis <- ecgtime_vis$`0`
+ecgtimeSummary$med_incor_hide <- ecgtime_hide$`0`
+ecgtimeSummary$med_incor_tot <- ecgtime_tot$`0`
+
+# Calculate no. of correct and incorrect answers
+
+ecgtime_count_vis <- dcast(ecgtime, ecg_id~diag_correct, length, value.var="ecg_id", subset=.(message_visible==1), fill=0)
+ecgtime_count_hide <- dcast(ecgtime, ecg_id~diag_correct, length, value.var="ecg_id", subset=.(message_visible==0), fill=0)
+ecgtime_count_tot <- dcast(ecgtime, ecg_id~diag_correct, length, value.var="ecg_id", fill=0)
+
+# Insert time results into ecgtimeSummary
+ecgtimeSummary$ct_cor_vis <- ecgtime_count_vis$`1`
+ecgtimeSummary$ct_cor_hide <- ecgtime_count_hide$`1`
+ecgtimeSummary$ct_cor_tot <- ecgtime_count_tot$`1`
+
+ecgtimeSummary$ct_incor_vis <- ecgtime_count_vis$`0`
+ecgtimeSummary$ct_incor_hide <- ecgtime_count_hide$`0`
+ecgtimeSummary$ct_incor_tot <- ecgtime_count_tot$`0`
+
+tableecgtime<-xtable(ecgtimeSummary,caption="Summary table showing individual ECG answer times",label="partsumecgtime",digits=0)
+print.xtable(tableecgtime,file="Tables/partsumecgtime-middle.tex",append=F,include.rownames=FALSE, only.contents=TRUE, include.colnames=FALSE,booktabs=T)
+
+
+# ------------------------ OVERALL ECG SUMMARY PARTICIPANT INTERACTION -----------------------------
+
+ecg$attempt_prop <- ecg$attempt_v/(ecg$attempt_v+ecg$attempt_h)
+ecg$attempt_prop_h <- 1-ecg$attempt_prop
+ecg$noAns_prop <- ecg$noAns_v/(ecg$noAns_v+ecg$noAns_h)
+ecg$noAns_prop_h <- 1-ecg$noAns_prop
+ecg$unviewed_prop <- ecg$unviewed_v/(ecg$unviewed_v+ecg$unviewed_h)
+ecg$unviewed_prop_h <- 1-ecg$unviewed_prop
+
+ecgFSD$attempt_prop <- ecgFSD$attempt_v/(ecgFSD$attempt_v+ecgFSD$attempt_h)
+ecgFSD$attempt_prop_h <- 1-ecgFSD$attempt_prop
+ecgFSD$noAns_prop <- ecgFSD$noAns_v/(ecgFSD$noAns_v+ecgFSD$noAns_h)
+ecgFSD$noAns_prop_h <- 1-ecgFSD$noAns_prop
+
+ecgSummaryTable1 <- NULL
+ecgSummaryTable1 <- rbind(ecgSummaryTable1,c("ECG interpretation attempts: total",round(median(ecg$attempt_tot)),paste(round(fivenum(ecg$attempt_tot)[2]),round(fivenum(ecg$attempt_tot)[4]),sep="-"),round(median(ecgFSD$attempt_tot)),paste(round(fivenum(ecgFSD$attempt_tot)[2]),round(fivenum(ecgFSD$attempt_tot)[4]),sep="-")))
+ecgSummaryTable1 <- rbind(ecgSummaryTable1,c("ECG interpretation attempts: message visible",round(median(ecg$attempt_v)),paste(round(fivenum(ecg$attempt_v)[2]),round(fivenum(ecg$attempt_v)[4]),sep="-"),round(median(ecgFSD$attempt_v)),paste(round(fivenum(ecgFSD$attempt_v)[2]),round(fivenum(ecgFSD$attempt_v)[4]),sep="-")))
+ecgSummaryTable1 <- rbind(ecgSummaryTable1,c("ECG interpretation attempts: message hidden",round(median(ecg$attempt_h)),paste(round(fivenum(ecg$attempt_h)[2]),round(fivenum(ecg$attempt_h)[4]),sep="-"),round(median(ecgFSD$attempt_h)),paste(round(fivenum(ecgFSD$attempt_h)[2]),round(fivenum(ecgFSD$attempt_h)[4]),sep="-")))
+ecgSummaryTable1 <- rbind(ecgSummaryTable1,c("Paired ECG interpretation attempts",round(median(ecg$dataPairs)),paste(round(fivenum(ecg$dataPairs)[2]),round(fivenum(ecg$dataPairs)[4]),sep="-"),round(median(ecgFSD$dataPairs)),paste(round(fivenum(ecgFSD$dataPairs)[2]),round(fivenum(ecgFSD$dataPairs)[4]),sep="-")))
+colnames(ecgSummaryTable1) <- c(" ","Median","Quartiles","Median","Quartiles")
+
+tableecgSum<-xtable(ecgSummaryTable1 ,caption="Summary table of participant interaction with ECGs",label="meanpropecginteract",digits=0)
+
+finaltableecgSum <- print.xtable(tableecgSum,append=F,table.placement="htbp",caption.placement="top",booktabs=TRUE,include.rownames=FALSE)
+finaltableecgSum <- sub("\\begin{tabular}{lllll}",
+                        "\\newcolumntype{D}{>{\\arraybackslash}p{0.35\\textwidth}}
+                        \\newcolumntype{E}{>{\\centering\\arraybackslash}p{0.1\\textwidth}}
+                        \\newcolumntype{F}{>{\\centering\\arraybackslash}p{0.2\\textwidth}}
+                        \\begin{tabular}{DEE|EE}
+                       & \\multicolumn{2}{F}{All data} & \\multicolumn{2}{F}{Final data} \\\\",finaltableecgSum,fixed=T)
+cat(finaltableecgSum,file="Tables/partsumecginteract-small.tex")
+
+# ------------------------ OVERALL ECG SUMMARY ANSWER TIMES----------------------------
+
+ecgtimeSummary$ct_cor_vis_prop <- ecgtimeSummary$ct_cor_vis/(ecgtimeSummary$ct_cor_vis+ecgtimeSummary$ct_cor_hide)
+ecgtimeSummary$ct_cor_hide_prop <- 1-ecgtimeSummary$ct_cor_vis_prop
+ecgtimeSummary$ct_incor_vis_prop <- ecgtimeSummary$ct_incor_vis/(ecgtimeSummary$ct_incor_vis+ecgtimeSummary$ct_incor_hide)
+ecgtimeSummary$ct_incor_hide_prop <- 1-ecgtimeSummary$ct_incor_vis_prop
+
+meanandsd <- function(correct,visible,all=0) {
+  if(all==1) {
+    data <- subset(ecgtime,ecgtime$diag_correct==correct)
+  }
+  else {
+    data <- subset(ecgtime,ecgtime$diag_correct==correct&ecgtime$message_visible==visible)
+  }
+  result <- c(round(mean(data$answer_time,na.rm=T),2),round(sd(data$answer_time,na.rm=T),2))
+  return(result)
+}
+ecgSummaryTable2 <- NULL
+ecgSummaryTable2 <- rbind(ecgSummaryTable2,c("Correct answer time with message visible",meanandsd(1,1)[1],meanandsd(1,1)[2]))
+ecgSummaryTable2 <- rbind(ecgSummaryTable2,c("Correct answer time with message hidden",meanandsd(1,0)[1],meanandsd(1,0)[2]))
+ecgSummaryTable2 <- rbind(ecgSummaryTable2,c("Correct answer time all messages",meanandsd(1,0,1)[1],meanandsd(1,0,1)[2]))
+ecgSummaryTable2 <- rbind(ecgSummaryTable2,c("Incorrect answer time with message visible",meanandsd(0,1)[1],meanandsd(0,1)[2]))
+ecgSummaryTable2 <- rbind(ecgSummaryTable2,c("Incorrect answer time with message hidden",meanandsd(0,0)[1],meanandsd(0,0)[2]))
+ecgSummaryTable2 <- rbind(ecgSummaryTable2,c("Incorrect answer time all messages",meanandsd(0,0,1)[1],meanandsd(0,0,1)[2]))
+ecgSummaryTable2 <- rbind(ecgSummaryTable2,c("Proportion of correct answer with message visible",sprintf("%.2f",round(mean(ecgtimeSummary$ct_cor_vis_prop),2)),round(sd(ecgtimeSummary$ct_cor_vis_prop),2)))
+ecgSummaryTable2 <- rbind(ecgSummaryTable2,c("Proportion of correct answer with message hidden",sprintf("%.2f",round(mean(ecgtimeSummary$ct_cor_hide_prop),2)),round(sd(ecgtimeSummary$ct_cor_hide_prop),2)))
+ecgSummaryTable2 <- rbind(ecgSummaryTable2,c("Number of correct answers",round(mean(ecgtimeSummary$ct_cor_tot),2),round(sd(ecgtimeSummary$ct_cor_tot),2)))
+ecgSummaryTable2 <- rbind(ecgSummaryTable2,c("Proportion of incorrect answer with message visible",round(mean(ecgtimeSummary$ct_incor_vis_prop,na.rm=T),2),round(sd(ecgtimeSummary$ct_incor_vis_prop,na.rm=T),2)))
+ecgSummaryTable2 <- rbind(ecgSummaryTable2,c("Proportion of incorrect answer with message hidden",round(mean(ecgtimeSummary$ct_incor_hide_prop,na.rm=T),2),round(sd(ecgtimeSummary$ct_incor_hide_prop,na.rm=T),2)))
+ecgSummaryTable2 <- rbind(ecgSummaryTable2,c("Number of incorrect answers",round(mean(ecgtimeSummary$ct_incor_tot),2),round(sd(ecgtimeSummary$ct_incor_tot),2)))
+colnames(ecgSummaryTable2) <- c(" ","mean","standard deviation")
+tableecgSum2<-xtable(ecgSummaryTable2 ,caption="Summary table of ECG answer times",label="meanpropsumecgtime",digits=0)
+
+finaltableecgSum2 <- print.xtable(tableecgSum2,append=F,table.placement="h",caption.placement="top",booktabs=TRUE,include.rownames=FALSE)
+finaltableecgSum2 <- sub("\\begin{tabular}{lll}",
+                        "\\newcolumntype{D}{>{\\arraybackslash}p{0.55\\textwidth}}
+                        \\newcolumntype{E}{>{\\centering\\arraybackslash}p{0.1\\textwidth}}
+                        \\newcolumntype{F}{>{\\centering\\arraybackslash}p{0.2\\textwidth}}
+                        \\begin{tabular}{DEF}",finaltableecgSum2,fixed=T)
+cat(finaltableecgSum2,file="Tables/partsumecgtime-small.tex")
+```
+The summary table is in latex, but you can make out some of the values.  The other important task of this section of code is to create a data.frame called ecgtimeSummary, which is used in the boxplots below.
+```{r echo=FALSE}
+tableecgSum2
+```
+
+ECG time summary boxplots
+-----------------
+To create the boxplots, I've used the R package ggplot2() and to colour them, RColorBrewer()
+```{r results='hide',message=FALSE,warning=FALSE}
+require(ggplot2)
+require(RColorBrewer)
+```
+As previously, I created some functions to organise the data so that it can be plotted in ggplot2
+```{r}
+# Function to create boxplot data
+makeBoxplot <- function(data1,mesg_vis,diag_cor,labelz,legendz,titlez) {
+  # Prepare dataset for plotting
+  
+  # ggplot won't acknowledge local variables without this
+  # http://stackoverflow.com/questions/10659133/local-variables-within-aes
+  .e <- environment()
+  data1$comp_corr <- ifelse(data1$stemi==data1$computer_diagnosis,1,0)
+  data1 <- subset(data1,message_visible==mesg_vis&comp_corr==diag_cor)
+  data1 <- data1[complete.cases(data1),]
+  print(length(unique(data1$ecg_id)))
+  dataMedian <- with(data1,reorder(ecg_id,ecg_id,median))
+  ecgPlot <- ggplot(data1, aes(dataMedian,answer_time), environment=.e)
+  print(ecgPlot+geom_boxplot(aes(fill=factor(classification)),alpha=0.7)+
+          scale_x_discrete(name="ECG ID")+
+          scale_fill_brewer(name=legendz)+
+          scale_y_continuous(name="Answer Time (secs)",breaks=seq(0,60,5))+
+          ggtitle(titlez))
+}
+
+makeBoxplot2 <- function(data1,CC,diag_cor,titlez) {
+  # Prepare dataset for plotting
+  data1 <- subset(data1, select=c("ecg_id","message_visible","diag_correct","answer_time","stemi","computer_diagnosis"))
+  # ggplot won't acknowledge local variables without this
+  # http://stackoverflow.com/questions/10659133/local-variables-within-aes
+  .e <- environment()
+  #data1$diag_correct <- ifelse(data1$stemi==data1$answer,1,0)
+  data1$comp_corr <- ifelse(data1$stemi==data1$computer_diagnosis,1,0)
+  data1 <- subset(data1,comp_corr==CC&diag_correct==diag_cor)
+  #data1 <- data1[complete.cases(data1),]
+  dataMedian <- with(data1,reorder(ecg_id,ecg_id,median, na.rm=T))
+  ecgPlot <- ggplot(data1, aes(dataMedian,answer_time), environment=.e)
+  print(ecgPlot+geom_boxplot(aes(fill=factor(message_visible,label=c("0"="Hidden","1"="Visible"))),alpha=0.7)+
+          scale_x_discrete(name="ECG ID")+
+          scale_fill_brewer(name="Message")+
+          scale_y_continuous(name="Answer Time (secs)",breaks=seq(0,60,5)))
+          #ggtitle(titlez))
+        # Removed ggtitle for dissertataion as Figure labels are going to be added
+}
+
+```
+The plots used in the dissertation were saved as PDFs, so there is some preparation required for this
+```{r results='hide',message=FALSE,warning=FALSE}
+#Create PDF for Boxplots
+pdf("AnsTimeVsECG.pdf",width=11,height=8,paper="a4r")
+
+# Plot data
+makeBoxplot2(FinalStudyData99,1,1,"Median answer time by ECG - correct participant and computer interpretation")
+
+makeBoxplot2(FinalStudyData99,1,0,"Median answer time by ECG - incorrect participant and correct computer interpretation")
+
+makeBoxplot2(FinalStudyData99,0,1,"Median answer time by ECG - correct participant and incorrect computer interpretation")
+
+makeBoxplot2(FinalStudyData99,0,0,"Median answer time by ECG - incorrect participant and computer interpretation")
+
+ecgtimePlot <- ggplot(ecgtimeSummary,aes(ecgtimeSummary))+
+  geom_point(aes(y=med_cor_vis,colour="Correct/Visible"))+
+  geom_point(aes(y=med_cor_hide,colour="Correct/Hidden"))+
+  geom_point(aes(y=med_incor_vis,colour="Incorrect/Visible"))+
+  geom_point(aes(y=med_incor_hide,colour="Incorrect/Hidden"))+
+  scale_color_discrete(name="Legend")+
+  scale_x_discrete(name="ECG ID")+
+  scale_y_continuous(name="Answer Time (secs)",breaks=seq(0,60,5))+
+  ggtitle("Median Answer Times by Computer Accuracy and Message Visibility")
+
+print(ecgtimePlot+geom_abline(intercept=21.65,slope=0,aes(color="Correct/Visible",alpha=0.4))+
+        geom_abline(intercept=19.19,slope=0,aes(color="Correct/Hidden",alpha=0.4))+
+        geom_abline(intercept=27.31,slope=0,aes(color="Incorrect/Visible",alpha=0.4))+
+        geom_abline(intercept=26.1,slope=0,aes(color="Incorrect/Hidden",alpha=0.4)))
+
+dev.off()
+```
+To save you having to find the PDF, the boxplots are shown below.
+```{r warning=FALSE,error=FALSE, fig.width=10}
+# Plot data
+makeBoxplot2(FinalStudyData99,1,1,"Median answer time by ECG - correct participant and computer interpretation")
+
+makeBoxplot2(FinalStudyData99,1,0,"Median answer time by ECG - incorrect participant and correct computer interpretation")
+
+makeBoxplot2(FinalStudyData99,0,1,"Median answer time by ECG - correct participant and incorrect computer interpretation")
+
+makeBoxplot2(FinalStudyData99,0,0,"Median answer time by ECG - incorrect participant and computer interpretation")
+```
