@@ -18,6 +18,8 @@ The following packages are required to be installed in order for these scripts t
 7. ggplot2
 8. RColorBrewer
 
+The scripts used to prepare and analysis the data are available in RMarkdown format in the R folder.
+
 
 ### Thesis
 
