@@ -83,7 +83,7 @@ makeSStable <- function(SSdf,message) {
   print(dat)
   # Calculate results of tests using epi.tests
   # Verbose = T important if you want to capture the output in a variabl
-  epiSS <- epi.tests(dat, conf.level = 0.95, verbose = TRUE)
+  epiSS <- epi.tests(dat, conf.level = 0.95)
   return(epiSS)
 }
   # Get results for message visible and hidden for all responses.
@@ -93,13 +93,13 @@ makeSStable <- function(SSdf,message) {
 
 SStable <- NULL
 # Create table to hold data and add All computer interpretation results
-SStable <- rbind(c("All",round(mesgVisAll$se[[1]]*100),round(mesgVisAll$sp[[1]]*100),round(mesgHideAll$se[[1]]*100),round(mesgHideAll$sp[[1]]*100)))
+SStable <- rbind(c("All",round(mesgVisAll$elements$se*100),round(mesgVisAll$elements$sp*100),round(mesgHideAll$elements$se*100),round(mesgHideAll$elements$sp*100)))
 
 # Correct computer interpretations
 SSdfCC <- count(subset(FinalStudyData99,FinalStudyData99$computer_diagnosis==FinalStudyData99$stemi),c("answer","stemi","message_visible"))
 mesgVisCC <- makeSStable(SSdfCC,1)
 mesgHideCC <- makeSStable(SSdfCC,0)
-SStable <- rbind(SStable,c("Correct",round(mesgVisCC$se[[1]]*100),round(mesgVisCC$sp[[1]]*100),round(mesgHideCC$se[[1]]*100),round(mesgHideCC$sp[[1]]*100)))
+SStable <- rbind(SStable,c("Correct",round(mesgVisCC$elements$se*100),round(mesgVisCC$elements$sp*100),round(mesgHideCC$elements$se*100),round(mesgHideCC$elements$sp*100)))
 
 # Incorrect computer interpretations
 SSdfCI <- count(subset(FinalStudyData99,FinalStudyData99$computer_diagnosis!=FinalStudyData99$stemi),c("answer","stemi","message_visible"))
@@ -107,7 +107,7 @@ SSdfCI <- count(subset(FinalStudyData99,FinalStudyData99$computer_diagnosis!=Fin
 mesgVisCI <- makeSStable(SSdfCI,1)
 mesgHideCI <- makeSStable(SSdfCI,0)
 
-SStable <- rbind(SStable,c("Incorrect",round(mesgVisCI$se[[1]]*100),round(mesgVisCI$sp[[1]]*100),round(mesgHideCI$se[[1]]*100),round(mesgHideCI$sp[[1]]*100)))
+SStable <- rbind(SStable,c("Incorrect",round(mesgVisCI$elements$se*100),round(mesgVisCI$elements$sp*100),round(mesgHideCI$elements$se*100),round(mesgHideCI$elements$sp*100)))
 
 SStable <- as.data.frame(SStable)
 colnames(SStable) <- c("Computer interpretation","Sensitivity","Specificity","Sensitivity","Specificity")
