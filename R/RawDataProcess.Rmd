@@ -1,3 +1,10 @@
+---
+title: "Raw-Data-Processing"
+output:
+  html_document: default
+  pdf_document: default
+---
+
 RESPECT pilot study - Raw Data Processing script
 ========================================================
 
@@ -26,7 +33,7 @@ numberConsented <- nrow(ParticipantData)
 numberStage1Finish <- nrow(subset(ParticipantData, ParticipantData$stage1==1))
 numberStage2Finish <- nrow(subset(ParticipantData, ParticipantData$stage2==1))
 ```
-The code chunk above tells us that **`r numberConsented`** participants consented, and of those, **`r numberStage1Finish`** completed stage 1, i.e. viewed all of the first 12 ECGs, and **`r numberStage2Finish`** completed the second stage and therefore, provide a full data set.
+The code chunk above tells us that **`r numberConsented`** participants consented, and of those, **`r numberStage1Finish`** completed stage 1, i.e. viewed all of the first 12 ECGs, and **`r numberStage2Finish`** completed the second stage and therefore, provide a full data set.  However, as we shall see later on, in actual fact 6 of those marked as having completed the quiz, did not have 24 responses, leaving a total of 150 for analysis.
 
 Next, we'll calculate the number of particpants who did, and did not, complete the demographic information, that is collected just before the participants view the ECGs.
 
@@ -169,8 +176,15 @@ FinalStudyData99 <- subset(FinalStudyData99,FinalStudyData99$stage1==1&FinalStud
 howmany <- unique(FinalStudyData99$participant_id)
 
 # Reorginaise data so that it is in order of Participants and then ECGs
-FinalStudyData <- ddply(FinalStudyData,c("participant_id","ecg_id"),transform)
-FinalStudyData99 <- ddply(FinalStudyData99,c("participant_id","ecg_id"),transform)
+FinalStudyData <- ddply(FinalStudyData,c("participant_id","ecg_id","message_visible"),transform)
+FinalStudyData99 <<- ddply(FinalStudyData99,c("participant_id","ecg_id","message_visible"),transform)
+
+# Finally, we need to remove all participants who have not completed 24 views of the ECG.
+
+FinalStudyData <- FinalStudyData[FinalStudyData$participant_id %in% names(table(FinalStudyData$participant_id))[table(FinalStudyData$participant_id) == 24],]
+
+FinalStudyData99 <- FinalStudyData99[FinalStudyData99$participant_id %in% names(table(FinalStudyData99$participant_id))[table(FinalStudyData99$participant_id) == 24],]
+
 ```
 For the analysis in the pilot study, the '99' variant of the data was used.  This included unaswered ECGs, that had been viewed by participants, but a choice about whether a STEMI was present or not, had not been made.  These were marked as incorrect for the analysis.
 Therefore, for the RESPECT pilot, there were **`r nrow(FinalStudyData99)/2`** pairs of responses suitable for analysis and **`r nrow(unpairedFinalData99)`** responses were orphans, i.e. did not have a corresponding response when the message was either visible and hidden.

@@ -1,11 +1,20 @@
+---
+title: "Analysis"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
 RESPECT Pilot Study - Analysis script
 ========================================================
 
 Before you run this RMarkdown script, you need to have processed the data using the RawDataProcess.Rmd file, as this scripts starts by loading in data.frames that have been prepared.
 
-```{r}
+```{r loadInData}
  load("FSD4knitr99.Rdata")
  load("FSD4knitr.Rdata")
+ load("UP994knitr.Rdata")
 ```
 Load in the files containing the dataframes, FinalStudyData99 and ParticipantData
 Convert the classification column values to a factor (think categorical data)
@@ -18,6 +27,14 @@ Create two subsets of the data, FSD99CC containing data where the computer was c
 FSD99CC <- subset(FinalStudyData99,FinalStudyData99$truepos==1|FinalStudyData99$trueneg==1)
 FSD99CI <- subset(FinalStudyData99,FinalStudyData99$falsepos==1|FinalStudyData99$falseneg==1)
 ```
+
+Create two subsets of the unpaired data, UPFSD99CC containing data where the computer was correct (i.e. true positives and true negatives) and UPFSD99CI, which contains data where the computer was incorrect.
+
+```{r}
+UPFSD99CC <- subset(unpairedFinalData99,unpairedFinalData99$truepos==1|unpairedFinalData99$trueneg==1)
+UPFSD99CI <- subset(unpairedFinalData99,unpairedFinalData99$falsepos==1|unpairedFinalData99$falseneg==1)
+```
+
 The rest of the analysis requires a number of R packages including:
 ```{r results='hide',message=FALSE,warning=FALSE}
 require('epitools')
@@ -25,47 +42,290 @@ require('xtable')
 ```
 Odds Ratio Table
 ------------
-makeBasicORTable is a function that returns the OR table.  By default it will calculate an OR table for all data, unless the variable ORtableName is set to FSD99CC or FSD99CI
-```{r results='hide'}
+makeBasicORTable is a function that returns the OR table.  By default it will calculate an OR table for all data, unless the variable ORtableName is set to FSD99CC or FSD99CI.  The Odds ratios for the unpaired data are also calculated in order to provide a comparison for the results that were excluded from the analysis.
+```{r OddsRatioTableFunction, results='hide'}
  makeBasicORTable <- function(ORtableName='') {
    # NULL is FinalStudyData99 i.e. all data pairs
    # FSD99CC - only includes data with correct computer interpretation
    # FSD99CI - only includes data with incorrect computer interpretation
    if(ORtableName=='FSD99CC') FSD = FSD99CC
    else if(ORtableName=='FSD99CI') FSD = FSD99CI
+   else if(ORtableName=='UFD99') FSD = unpairedFinalData99
+   else if(ORtableName=='UFD99CC') FSD = UPFSD99CC
+   else if(ORtableName=='UFD99CI') FSD = UPFSD99CI
    else FSD = FinalStudyData99
    ORT <- epitools::oddsratio(FSD$message_visible,FSD$diag_correct,verbose=T)
-   print(ORT) 
+   #print(ORT) 
+   
  } 
  
- ORtable <- makeBasicORTable()
+ ORtableAll <- makeBasicORTable()
  ORtableCC <- makeBasicORTable("FSD99CC")
  ORtableCI <- makeBasicORTable("FSD99CI")
+ ORunpairedtable <- makeBasicORTable("UFD99")
+ ORunpairedtableCC <- makeBasicORTable("UFD99CC")
+ ORunpairedtableCI <- makeBasicORTable("UFD99CI")
 ```
 The resulting tables (note that the predictor is the computer message visibility, 0 for hidden, 1 for visible and outcome is the participant interpretation being correct (1) or incorrect (0):
 
-Odds ratio table for all results
-```{r echo=FALSE}
-ORtable$data
+### Odds ratio table for all results
+```{r oddsRatioForAllResults, echo=FALSE}
+ORtable <- ORtableAll
 ```
+
+|             ||      Participant interpretation       ||
+|-------------|:--------:|:-------------------:|:------:|
+| **Message**     |Correct   | Incorrect           |Total   |
+| Visible     |`r ORtable$data[5]` (`r round((ORtable$data[5]/ORtable$data[8])*100)`%) |`r ORtable$data[2]` (`r round((ORtable$data[2]/ORtable$data[8])*100)`%) |`r ORtable$data[8] `  |
+| Hidden      |`r ORtable$data[4]` (`r round((ORtable$data[4]/ORtable$data[7])*100)`%)| `r ORtable$data[1]` (`r round((ORtable$data[1]/ORtable$data[7])*100)`%) | `r ORtable$data[7] `  |
+| Total       | `r ORtable$data[6]` (`r round((ORtable$data[6]/ORtable$data[9])*100)`%) |`r ORtable$data[3]` (`r round((ORtable$data[3]/ORtable$data[9])*100)`%)  | `r ORtable$data[9] ` |
+
+
 Odds ratio table for correct computer interpretations
 ```{r echo=FALSE}
-ORtableCC$data
+ORtable <- ORtableCC
 ```
+
+|             ||      Participant interpretation       ||
+|-------------|:--------:|:-------------------:|:------:|
+| **Message**     |Correct   | Incorrect           |Total   |
+| Visible     |`r ORtable$data[5]` (`r round((ORtable$data[5]/ORtable$data[8])*100)`%) |`r ORtable$data[2]` (`r round((ORtable$data[2]/ORtable$data[8])*100)`%) |`r ORtable$data[8] `  |
+| Hidden      |`r ORtable$data[4]` (`r round((ORtable$data[4]/ORtable$data[7])*100)`%)| `r ORtable$data[1]` (`r round((ORtable$data[1]/ORtable$data[7])*100)`%) | `r ORtable$data[7] `  |
+| Total       | `r ORtable$data[6]` (`r round((ORtable$data[6]/ORtable$data[9])*100)`%) |`r ORtable$data[3]` (`r round((ORtable$data[3]/ORtable$data[9])*100)`%)  | `r ORtable$data[9] ` |
+
 Odds ratio table for incorrect computer interpretations
 ```{r echo=FALSE}
-ORtableCI$data
+ORtable <- ORtableCI
 ```
+
+|             ||      Participant interpretation       ||
+|-------------|:--------:|:-------------------:|:------:|
+| **Message**     |Correct   | Incorrect           |Total   |
+| Visible     |`r ORtable$data[5]` (`r round((ORtable$data[5]/ORtable$data[8])*100)`%) |`r ORtable$data[2]` (`r round((ORtable$data[2]/ORtable$data[8])*100)`%) |`r ORtable$data[8] `  |
+| Hidden      |`r ORtable$data[4]` (`r round((ORtable$data[4]/ORtable$data[7])*100)`%)| `r ORtable$data[1]` (`r round((ORtable$data[1]/ORtable$data[7])*100)`%) | `r ORtable$data[7] `  |
+| Total       | `r ORtable$data[6]` (`r round((ORtable$data[6]/ORtable$data[9])*100)`%) |`r ORtable$data[3]` (`r round((ORtable$data[3]/ORtable$data[9])*100)`%)  | `r ORtable$data[9] ` |
+
+### Odds ratio table for all unpaired results
+```{r echo=FALSE}
+ORtable <- ORunpairedtable
+```
+
+|             ||      Participant interpretation       ||
+|-------------|:--------:|:-------------------:|:------:|
+| **Message**     |Correct   | Incorrect           |Total   |
+| Visible     |`r ORtable$data[5]` (`r round((ORtable$data[5]/ORtable$data[8])*100)`%) |`r ORtable$data[2]` (`r round((ORtable$data[2]/ORtable$data[8])*100)`%) |`r ORtable$data[8] `  |
+| Hidden      |`r ORtable$data[4]` (`r round((ORtable$data[4]/ORtable$data[7])*100)`%)| `r ORtable$data[1]` (`r round((ORtable$data[1]/ORtable$data[7])*100)`%) | `r ORtable$data[7] `  |
+| Total       | `r ORtable$data[6]` (`r round((ORtable$data[6]/ORtable$data[9])*100)`%) |`r ORtable$data[3]` (`r round((ORtable$data[3]/ORtable$data[9])*100)`%)  | `r ORtable$data[9] ` |
+
+Odds ratio table for all correct computer interpretation unpaired results
+```{r echo=FALSE}
+ORtable <- ORunpairedtableCC
+```
+
+|             ||      Participant interpretation       ||
+|-------------|:--------:|:-------------------:|:------:|
+| **Message**     |Correct   | Incorrect           |Total   |
+| Visible     |`r ORtable$data[5]` (`r round((ORtable$data[5]/ORtable$data[8])*100)`%) |`r ORtable$data[2]` (`r round((ORtable$data[2]/ORtable$data[8])*100)`%) |`r ORtable$data[8] `  |
+| Hidden      |`r ORtable$data[4]` (`r round((ORtable$data[4]/ORtable$data[7])*100)`%)| `r ORtable$data[1]` (`r round((ORtable$data[1]/ORtable$data[7])*100)`%) | `r ORtable$data[7] `  |
+| Total       | `r ORtable$data[6]` (`r round((ORtable$data[6]/ORtable$data[9])*100)`%) |`r ORtable$data[3]` (`r round((ORtable$data[3]/ORtable$data[9])*100)`%)  | `r ORtable$data[9] ` |
+
+Odds ratio table for all incorrect computer interpretation unpaired results
+```{r echo=FALSE}
+ORtable <- ORunpairedtableCI
+```
+
+|             ||      Participant interpretation       ||
+|-------------|:--------:|:-------------------:|:------:|
+| **Message**     |Correct   | Incorrect           |Total   |
+| Visible     |`r ORtable$data[5]` (`r round((ORtable$data[5]/ORtable$data[8])*100)`%) |`r ORtable$data[2]` (`r round((ORtable$data[2]/ORtable$data[8])*100)`%) |`r ORtable$data[8] `  |
+| Hidden      |`r ORtable$data[4]` (`r round((ORtable$data[4]/ORtable$data[7])*100)`%)| `r ORtable$data[1]` (`r round((ORtable$data[1]/ORtable$data[7])*100)`%) | `r ORtable$data[7] `  |
+| Total       | `r ORtable$data[6]` (`r round((ORtable$data[6]/ORtable$data[9])*100)`%) |`r ORtable$data[3]` (`r round((ORtable$data[3]/ORtable$data[9])*100)`%)  | `r ORtable$data[9] ` |
+
+
+
+Crossover Table
+-------------------
+It was pointed out to me that the simple 2x2 tables output above do not show the crossover.  So, the data below will address that.
+
+This requires the R package plyr()
+```{r results='hide',message=FALSE,warning=FALSE}
+require('plyr')
+```
+
+Prepare the data to collate the frequences:
+```{r crossOverTables, results='hide' }
+
+crossoverDataPrep <- function(dataTableName='') {
+  if(dataTableName=='FSD99CC') FSD = FSD99CC
+  else if(dataTableName=='FSD99CI') FSD = FSD99CI
+  else FSD = FinalStudyData99
+  sortData <- ddply(FSD,c("participant_id","ecg_id","message_visible"),transform)
+  crossoverData <- ddply(sortData,c("participant_id","ecg_id"),function(x)ifelse(x$diag_correct[1] == 1 & x$diag_correct[2] == 1,"CC",ifelse(x$diag_correct[1] == 0 & x$diag_correct[2] == 0,"II",ifelse(x$diag_correct[1] == 1 & x$diag_correct[2] == 0,"CI","IC"))))
+  sumXOver <- count(crossoverData,c("V1"))
+  print(sumXOver)
+}
+
+sumXOverAll <- crossoverDataPrep()
+sumXOverCC <- crossoverDataPrep('FSD99CC')
+sumXOverCI <- crossoverDataPrep('FSD99CI')
+
+```
+
+#### Here is the 2x2 Crossover table for all results:
+
+|             |           | Message Hidden                           ||                                           |
+|-------------|:---------:|:--------------------:|:--------------------:|:-----------------------------------------:|
+|             |           |  Correct             | Incorrect            | Total                                     |
+| **Message** |  Correct  | `r sumXOverAll$freq[1]` | `r sumXOverAll$freq[3]` | `r sum(sumXOverAll$freq[1],sumXOverAll$freq[2])`|
+| **Visible**  | Incorrect | `r sumXOverAll$freq[2]` | `r sumXOverAll$freq[4]` | `r sum(sumXOverAll$freq[3],sumXOverAll$freq[4])`|
+|             | Total     | `r sum(sumXOverAll$freq[1],sumXOverAll$freq[3])` | `r sum(sumXOverAll$freq[2],sumXOverAll$freq[4])` | `r sum(sumXOverAll$freq[1],sumXOverAll$freq[2],sumXOverAll$freq[3],sumXOverAll$freq[4])`|
+
+The Odds Ratio is `r sumXOverAll$freq[3]`/`r sumXOverAll$freq[2]` = `r sumXOverAll$freq[3]/sumXOverAll$freq[2]` 
+
+
+#### Here is the 2x2 Crossover table for all correct computer interpretations
+
+|             |           | Message Hidden                            ||                                           |
+|-------------|:---------:|:--------------------:|:--------------------:|:-----------------------------------------:|
+|             |           |  Correct             | Incorrect            | Total                                     |
+| **Message** |  Correct  | `r sumXOverCC$freq[1]` | `r sumXOverCC$freq[3]` | `r sum(sumXOverCC$freq[1],sumXOverCC$freq[2])`|
+| **Visible**  | Incorrect | `r sumXOverCC$freq[2]` | `r sumXOverCC$freq[4]` | `r sum(sumXOverCC$freq[3],sumXOverCC$freq[4])`|
+|             | Total     | `r sum(sumXOverCC$freq[1],sumXOverCC$freq[3])` | `r sum(sumXOverCC$freq[2],sumXOverCC$freq[4])` | `r sum(sumXOverCC$freq[1],sumXOverCC$freq[2],sumXOverCC$freq[3],sumXOverCC$freq[4])`|
+
+The Odds Ratio is `r sumXOverCC$freq[3]`/`r sumXOverCC$freq[2]` = `r sumXOverCC$freq[3]/sumXOverCC$freq[2]` 
+
+
+#### Here is the 2x2 Crossover table for all incorrect computer interpretations:
+
+|             |           | Message Hidden                           ||                                           |
+|-------------|:---------:|:--------------------:|:--------------------:|:-----------------------------------------:|
+|             |           |  Correct             | Incorrect            | Total                                     |
+| **Message** |  Correct  | `r sumXOverCI$freq[1]` | `r sumXOverCI$freq[3]` | `r sum(sumXOverCI$freq[1],sumXOverCI$freq[2])`|
+| **Visible**  | Incorrect | `r sumXOverCI$freq[2]` | `r sumXOverCI$freq[4]` | `r sum(sumXOverCI$freq[3],sumXOverCI$freq[4])`|
+|             | Total     | `r sum(sumXOverCI$freq[1],sumXOverCI$freq[3])` | `r sum(sumXOverCI$freq[2],sumXOverCI$freq[4])` | `r sum(sumXOverCI$freq[1],sumXOverCI$freq[2],sumXOverCI$freq[3],sumXOverCI$freq[4])`|
+
+The Odds Ratio is `r sumXOverCI$freq[3]`/`r sumXOverCI$freq[2]` = `r sumXOverCI$freq[3]/sumXOverCI$freq[2]` 
+
+
+
+Mike Campbells suggestion
+---------------
+
+This requires the R package reshape2()
+**UPDATE** This method was abandoned in favour of a custom model created in WinBUGS by Dawn Teare
+```{r results='hide',message=FALSE,warning=FALSE}
+require('reshape2')
+require('ggplot2')
+require('RColorBrewer')
+```
+
+```{r }
+
+crossoverTtest <- function(dataTableName='') {
+  if(dataTableName=='FSD99CC') FSD = FSD99CC
+  else if(dataTableName=='FSD99CI') FSD = FSD99CI
+  else FSD = FinalStudyData99
+  sortData <- ddply(FSD,c("participant_id","ecg_id","message_visible"),transform)
+  # CI is message hidden correct, message visible incorrect
+  # IC is message hidden incorrect, message visible correct
+  crossoverData <- ddply(sortData,c("participant_id","ecg_id"),function(x)ifelse(x$diag_correct[1] == 1 & x$diag_correct[2] == 1,"CC",ifelse(x$diag_correct[1] == 0 & x$diag_correct[2] == 0,"II",ifelse(x$diag_correct[1] == 1 & x$diag_correct[2] == 0,"CI","IC"))))
+  countXOver <- count(crossoverData,c("participant_id","V1"))
+  summaryParticipants <- dcast(countXOver,participant_id~V1)
+  summaryParticipants[is.na(summaryParticipants)] <- 0.5
+  summaryParticipants$OR <- summaryParticipants$IC/summaryParticipants$CI
+  m <- ggplot(summaryParticipants, aes(x=OR))
+  print(t.test(summaryParticipants$OR,mu=1))
+  print(m + geom_histogram(binwidth=1,aes(fill = ..count..)))
+}
+
+```
+
+T-test for all results
+```{r}
+#crossoverTtest()
+```
+
+T-test for computer correct interpretations
+```{r}
+#crossoverTtest('FSD99CC')
+```
+
+T-test for computer incorrect interpretations
+```{r}
+#crossoverTtest('FSD99CI')
+```
+
+Conditional Logistic Regression
+------------
+First, straight conditional logistic regression without random effects, using the clogit() function in the survival package and finally, the coxme() function, which allows the inclusion of random effects due to participant and ecg:
+
+```{r results='hide',message=FALSE,warning=FALSE}
+require('survival')
+require('mclogit')
+require('coxme')
+```
+
+```{r clogitAnalysis}
+clogitAnalysis <- function(ORtableName='',typeOfClogit=''){
+  if(ORtableName=='FSD99CC') FSD = FSD99CC
+  else if(ORtableName=='FSD99CI') FSD = FSD99CI
+  else FSD = FinalStudyData99
+  if(typeOfClogit=='mclogit') typeClog = 'mclogit'
+  else typeClog = 'clogit'
+  clogPrepData <- subset(FSD,select=c("quiz_id","participant_id","ecg_id","diag_correct","message_visible"))
+  rowNumbers = nrow(clogPrepData)/2
+  clogPrepData$stratum <- rep(1:rowNumbers,each=2)
+  
+  if(typeClog=='clogit') {
+    clogAll <- clogit(message_visible~diag_correct+strata(stratum),data=clogPrepData)
+    #clogAll <- coxph(formula = Surv(rep(1, 3600L), diag_correct) ~ message_visible + strata(stratum), data = clogPrepData, method = "exact")
+    
+   # NOTE This is not the same as:
+    # clogit(diag_correct~message_visible+strata(participant_id,ecg_id),data=clogPrepData)
+    print(summary(clogAll))
+   
+   # Throw in the coxme data with random effects
+   # This does not work!
+   # coxmePE <- coxme(formula = Surv(rep(1, nrow(clogPrepData)), message_visible) ~ diag_correct + strata(stratum)+(1|participant_id)+(1|ecg_id), data = clogPrepData)
+   
+   
+   # Which bizarrely is NOT the same as this, which has the participant_id and ecg_id random effects swapped around\
+   # Probably solution. The order that the variables were sorted by (participant then ecg) makes a difference to the way 
+   # They should be specified in the model.
+  # coxmeEP <- coxme(formula = Surv(rep(1, nrow(clogPrepData)), message_visible) ~ diag_correct + strata(stratum)+(1|ecg_id)+(1|participant_id), data = clogPrepData)
+   
+   #print(coxmePE)
+
+   #print(coxmeEP)
+  }
+
+}
+```
+
+All results:
+```{r clogitAnalysisAllResults } 
+  clogitAnalysis() 
+```
+
+Computer Correct interpretations:
+```{r clogitAnalysisCC } 
+  clogitAnalysis('FSD99CC') 
+```
+
+Computer Incorrect interpretations:
+```{r clogitAnalysisCI } 
+  clogitAnalysis('FSD99CI') 
+```
+
 
 Sensitivity and Specificity
 ---------------
-This requires a couple of R packages, epiR() and plyr()
+This requires the R package, epiR()
 ```{r results='hide',message=FALSE,warning=FALSE}
 require('epiR')
-require('plyr')
 ```
 The first step is to create the function to create the tables from which the sensitvity and specificity can be calculated
-```{r}
+```{r sensitivityAndSpecificity }
 makeSStable <- function(SSdf,message) {
   #Create table to calculate sensitivity and sepcificity stats
   sPosaPos <- SSdf$freq[SSdf$answer==1&SSdf$stemi==1&SSdf$message_visible==message]
@@ -87,9 +347,10 @@ makeSStable <- function(SSdf,message) {
   return(epiSS)
 }
   # Get results for message visible and hidden for all responses.
-  SSdf <- count(FinalStudyData,c("answer","stemi","message_visible"))
+  SSdf <- count(FinalStudyData99,c("answer","stemi","message_visible"))
   mesgVisAll <- makeSStable(SSdf,1)
   mesgHideAll <- makeSStable(SSdf,0)
+  #print(mesgVisAll)
 
 SStable <- NULL
 # Create table to hold data and add All computer interpretation results
@@ -133,47 +394,79 @@ Note that the first 2 columns labelled Sensitivity and Specificity relate to the
 print(SStable)
 ```
 
+
 Generalised Linear Modelling
 --------------------
-Now comes the interesting part!  The GLM models.  These were calculated for all of the data, computer correct interpretations and computer incorrect interpretations
-Initiall, no random effects were included, so no account of clustering was considered.
-Note that the results are the log OR.
+The original analysis ignored the paired nature of the data and so this GLM is rather redundant, but is used in some of the OR table creations later on.
 
-```{r}
+```{r glmModelling}
 # GLM model all computer messages
 fit <-  glm(diag_correct~message_visible,data=FinalStudyData99,family=binomial("logit"))
-summary(fit)
+#summary(fit)
  
  #GLM model with only computer correct messages
  fitcc <-  glm(diag_correct~message_visible,data=FSD99CC,family=binomial("logit"))
- summary(fitcc)
+ #summary(fitcc)
  
  #GLM model with only computer INCORRECT messages
  fitci <-  glm(diag_correct~message_visible,data=FSD99CI,family=binomial("logit"))
- summary(fitci)
+ #summary(fitci)
 ```
 
-In order to take account of clustering, a random effects or multi-level model was used.  In fact it is a cross-classified model as both the ECG and participant are a cluster on any ECG interpretation attempt.  To do this in R, I user the lme4() package
+Generalised Linear Modelling with Random Effects
+--------------------
+
+In order to take account of clustering, a random effects or multi-level model was used.  In fact it is a cross-classified model as both the ECG and participant are a cluster on any ECG interpretation attempt.  To do this in R, I used the lme4() package
+
+However, the problem is representing the matched pair part of the data.  Good results can be had (comparable with conditional logistic regression) if only stratum is specified.  However, adding participant and ecg does little to the model and I think the coxme regression is the way to go.
+
 ```{r results='hide',message=FALSE,warning=FALSE}
 require(lme4)
 ```
-As before 3 separate models were calculated, for all data and the subsets of computer correct, and incorrect, interpretation.  Laplacian approximation was used in these models.
-```{r}
- # GLM model with random effects - all computer messages
-fitGLM <- glmer(diag_correct~1+message_visible+(1|ecg_id)+(1|participant_id),data=FinalStudyData99,family=binomial("logit"))
-summary(fitGLM)
+As before 3 separate models were calculated, for all data and the subsets of computer correct, and incorrect, interpretation.  **UPDATE** Now added additional stratum variable, which represents the pairing of data.
+Laplacian approximation was used in these models.
 
- # GLM model with random effects - all correct computer messages
- fitGLMcc <- glmer(diag_correct~1+message_visible+(1|ecg_id)+(1|participant_id),data=FSD99CC,family=binomial("logit"))
- summary(fitGLMcc)
- 
- # GLM model with random effects - all incorrect computer messages
- fitGLMci <- glmer(diag_correct~1+message_visible+(1|ecg_id)+(1|participant_id),data=FSD99CI,family=binomial("logit"))
- summary(fitGLMci)
- 
+**UPDATE 2** It turns out that this is probably not an accurate model of conditional logistic regression with random effects.  This is now being undertaken in WinBUGS, using a custom model created by Dawn Teare. I am in the process of recreating this in R, using R2winBUGS() and will update the scripts once this has been done.
+
+```{r glmerModelling}
+glmModelWithStratum <- function(ORtableName=''){
+  if(ORtableName=='FSD99CC') FSD = FSD99CC
+  else if(ORtableName=='FSD99CI') FSD = FSD99CI
+  else FSD = FinalStudyData99
+  clogPrepData <- subset(FSD,select=c("quiz_id","participant_id","ecg_id","diag_correct","message_visible"))
+  rowNumbers = nrow(clogPrepData)/2
+  clogPrepData$stratum <- rep(1:rowNumbers,each=2)
+  if(ORtableName=='') {
+    # The model with all data will fail to converge unless nAGQ is set to 0
+    fitGLM <- glmer(diag_correct~1+message_visible+(1|stratum)+(1|ecg_id)+(1|participant_id),data=clogPrepData,family=binomial("logit"),nAGQ=0)
+  }
+  else fitGLM <- glmer(diag_correct~1+message_visible+(1|stratum)+(1|ecg_id)+(1|participant_id),data=clogPrepData,family=binomial("logit"))
+  
+  }
+
 ```
+
+GLM model with random effects - all computer messages
+```{r}
+  fitGLM <- glmModelWithStratum()
+  summary(fitGLM)
+```
+
+
+GLM model with random effects - all correct computer messages
+```{r}
+  fitGLMcc <- glmModelWithStratum('FSD99CC')
+  summary(fitGLMcc)
+```
+ 
+GLM model with random effects - all incomputer messages
+```{r}
+  fitGLMci <- glmModelWithStratum('FSD99CI')
+  summary(fitGLMci)
+```
+
 As before, tables were generated in Latex, which could be directly inserted into the dissertation.  The output and functions are suppressed here, but you can see them in the source code.
-```{r results='hide',message=FALSE,warning=FALSE, echo=FALSE}
+```{r createLatexTables, results='hide',message=FALSE,warning=FALSE, echo=FALSE}
  combiTable <- function(glm,glmre,caption1,label1,filename) {
    tableOUT <- data.frame((coef(summary(glm))[,c("Estimate","Std. Error","z value","Pr(>|z|)")]),check.names=F)
    tableOUTCI <- confint(glm)
@@ -289,39 +582,53 @@ As before, tables were generated in Latex, which could be directly inserted into
 Intraclass Correlation Coefficients (ICC)
 ------------------------
 The ICC for participants and ECGs were calculated, since these will be required for future sample size calculations in the main study.
-```{r}
+```{r calculateICC}
 xVars <- function(model) {
    exvars = lme4::VarCorr(model)
-   vars = c(exvars$ecg_id[1,1], exvars$participant_id[1,1]) 
+   vars = c(exvars$ecg_id[1], exvars$participant_id[1]) 
+  #vars = c(exvars$`stratum:ecg_id`[1],exvars$`stratum:participant_id`[1])
    names(vars) <- c('ecg var', 'participant var')
    vars 
  }
  
  # helper function for ICC(k) variations
- icck <- function(variances, var='both') {
+ icck <- function(varianceZ, var='both') {
    # Binomial distribution (logit), residual variance fixed at pi*2/3
-   resVar <- (pi*2/3)
-   if(var=='ecg')  icc = variances[1] / (variances[1] + variances[2] + resVar)
-   else if(var=='participant') icc = variances[2] / (variances[1] + variances[2] + resVar)
-   else icc = (variances[1] + variances[2]) / (variances[1] + variances[2] + resVar)
+   resVar <- (pi^2)/3
+   if(var=='ecg')  icc <- varianceZ[1] / (varianceZ[1] + varianceZ[2] + resVar)
+   else if(var=='participant') icc <- varianceZ[2] / (varianceZ[1] + varianceZ[2] + resVar)
+   else icc <- (varianceZ[1] + varianceZ[2]) / (varianceZ[1] + varianceZ[2] + resVar)
+
+   return(icc)
  }
 ```
-The model fitGLMOnly, only includes the random effects i.e. ECG and pariticipant
+
+The model fitGLMOnly, only includes the random effects i.e. participant and ECG
+
 ```{r}
- fitGLMOnly <- glmer(diag_correct~(1|ecg_id)+(1|participant_id),data=FinalStudyData99,family=binomial("logit"))
+
+ clogPrepData <- subset(FinalStudyData99,select=c("quiz_id","participant_id","ecg_id","diag_correct","message_visible"))
+ rowNumbers = nrow(clogPrepData)/2
+ clogPrepData$stratum <- rep(1:rowNumbers,each=2)
+ clogPrepData$cons <- 1
+ coxmeForICC <- coxme(formula = Surv(rep(1, nrow(clogPrepData)), cons) ~ strata(stratum)+(1|participant_id)+(1|ecg_id), data = clogPrepData)
+ variances <<- c(coxmeForICC$vcoef$ecg_id[[1]],coxmeForICC$vcoef$participant_id[[1]])
 
 ```
-The combined ICC value for participants and ECGs is `r icck(xVars(fitGLMOnly))[[1]]`
 
-The ICC value for participants is `r icck(xVars(fitGLMOnly),'ecg')[[1]]`
+The combined ICC value for Participants and ECGs is `r icck(variances)`
 
-The combined ICC value for participants and ECGs is `r icck(xVars(fitGLMOnly),'participant')[[1]]`
+The ICC value for ECGs is `r icck(variances,'ecg')`
+
+The ICC value for participants is `r icck(variances,'participant')`
+
+**UPDATE** These ICC values are incorrect.  Updated ICCs have been produced from the WinBUGS model.
 
 QQ-plots
 -----------
 Just for fun, I calculated some QQ-plots for the data using a function from http://stackoverflow.com/questions/13847936/in-r-plotting-random-effects-from-lmer-lme4-package-using-qqmath-or-dotplot
 
-```{r}
+```{r qqPlots}
  ggCaterpillar <- function(re, QQ=TRUE, likeDotplot=TRUE,thetitle="ggCaterpillar") {
    require(ggplot2)
    f <- function(x) {
@@ -361,9 +668,9 @@ Just for fun, I calculated some QQ-plots for the data using a function from http
  }
  
  # Print plots for RE variance
- print(ggCaterpillar(ranef(fitGLM, postVar=TRUE), QQ=FALSE, likeDotplot=FALSE,"Random effects plots - all data"))
+ #print(ggCaterpillar(ranef(fitGLM, postVar=TRUE), QQ=FALSE, likeDotplot=FALSE,"Random effects plots - all data"))
  # Just correct computer interpretations
- print(ggCaterpillar(ranef(fitGLMcc, postVar=TRUE), QQ=FALSE, likeDotplot=FALSE,"Random effects plots - computer correct"))
+ #print(ggCaterpillar(ranef(fitGLMcc, postVar=TRUE), QQ=FALSE, likeDotplot=FALSE,"Random effects plots - computer correct"))
  # Just incorrect computer interpretations
- print(ggCaterpillar(ranef(fitGLMci, postVar=TRUE), QQ=FALSE, likeDotplot=FALSE,"Random effects plots - computer incorrect"))
+# print(ggCaterpillar(ranef(fitGLMci, postVar=TRUE), QQ=FALSE, likeDotplot=FALSE,"Random effects plots - computer incorrect"))
 ```
