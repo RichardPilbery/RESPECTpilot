@@ -57,9 +57,16 @@ numberParticipantsFailFinishStage1 <- nrow(subset(ParticipantData, ParticipantDa
 ```
 This code chunk tells us that **`r numberParticipantsFailFinishStage1`** did not complete Stage 1 of the study.
 
+In order to maximise reproducability, these scripts use the checkpoint package.  This needs loading:
+
+```{r results='hide',message=FALSE,warning=FALSE}
+library(checkpoint)
+checkpoint('2015-04-12')
+```
+
 To complete some of the other processes, we need the package plyr(), which contains the count() and ddply() functions.
 ```{r results='hide',message=FALSE,warning=FALSE}
-require(plyr)
+library(plyr)
 ```
 The code chunk below creates a new data.frame which contains the frequencies of the various combinations of stage1,stage2 completion, message_visible and answer.  So, for example, it will be possible to calculate how many responses there are from participants completed stage 1 and stage 2, when a computer interpretation message was visible.  The first six rows are shown to give you an idea.
 
@@ -98,7 +105,7 @@ failedPhase2EcgsTotal <- failedPhase2EcgsWithMessage + failedPhase2EcgsNoMessage
 failedPhase2Data <- subset(ParticipantData, ParticipantData$stage1==1 & ParticipantData$stage2==0 & !is.na(ParticipantData$trainroute))
 medianPhase2FailEcgsViewed <-median(failedPhase2Data$ecg_views)
 ```
-From the code chunk above, **`r numberParticipantsFailFinishStage2`** participants who completed stage 1, failed to complete stage 2.
+From the code chunk above, **`r numberParticipantsFailFinishStage2`** participants who completed stage 1, failed to complete stage 2.  However, the actual number is 55, once the particpants who failed to complete all 24 pairs were excluded.
 In addition:
 - **`r failedPhase2EcgsTotal`** ECGs were allocated to participants who failed to complete stage 2.
 - **`r failedPhase2EcgsWithMessage`** ECGs were allocated to participants who failed to complete stage 2, had a message visible and were NOT answered.
@@ -164,7 +171,7 @@ unpairedFinalData99 <- ddply(StudyData99,c("participant_id","ecg_id"),function(x
 save(unpairedFinalData, file="FSDUnpaired4knitr.Rdata")
 
 # Load sqldf library in order to remove unpairedData from StudyData
-require(sqldf,quietly=TRUE)
+library(sqldf,quietly=TRUE)
 
 # Generate FinalStudyData (and 99) data frame
 FinalStudyData <- sqldf('SELECT * FROM StudyData EXCEPT SELECT * FROM unpairedFinalData')
@@ -173,7 +180,6 @@ FinalStudyData99 <- sqldf('SELECT * FROM StudyData99 EXCEPT SELECT * FROM unpair
 # Remove anyone who has not completed both stages 
 FinalStudyData <- subset(FinalStudyData,FinalStudyData$stage1==1&FinalStudyData$stage2==1)
 FinalStudyData99 <- subset(FinalStudyData99,FinalStudyData99$stage1==1&FinalStudyData99$stage2==1)
-howmany <- unique(FinalStudyData99$participant_id)
 
 # Reorginaise data so that it is in order of Participants and then ECGs
 FinalStudyData <- ddply(FinalStudyData,c("participant_id","ecg_id","message_visible"),transform)
@@ -184,10 +190,14 @@ FinalStudyData99 <<- ddply(FinalStudyData99,c("participant_id","ecg_id","message
 FinalStudyData <- FinalStudyData[FinalStudyData$participant_id %in% names(table(FinalStudyData$participant_id))[table(FinalStudyData$participant_id) == 24],]
 
 FinalStudyData99 <- FinalStudyData99[FinalStudyData99$participant_id %in% names(table(FinalStudyData99$participant_id))[table(FinalStudyData99$participant_id) == 24],]
+# Calculate how many participants are left:
+howmany <- unique(FinalStudyData99$participant_id)
 
 ```
 For the analysis in the pilot study, the '99' variant of the data was used.  This included unaswered ECGs, that had been viewed by participants, but a choice about whether a STEMI was present or not, had not been made.  These were marked as incorrect for the analysis.
 Therefore, for the RESPECT pilot, there were **`r nrow(FinalStudyData99)/2`** pairs of responses suitable for analysis and **`r nrow(unpairedFinalData99)`** responses were orphans, i.e. did not have a corresponding response when the message was either visible and hidden.
+
+Having removed participants who do not have 24 pairs of data (2 for each ECG), the final count is **`r length(howmany)`**.
 
 Next we can work out the median number of particpants who provded a pair of responses (when the message was hidden and visible) for each ECG
 ```{r}
