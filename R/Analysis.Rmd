@@ -9,12 +9,21 @@ output:
 RESPECT Pilot Study - Analysis script
 ========================================================
 
-Before you run this RMarkdown script, you need to have processed the data using the RawDataProcess.Rmd file, as this scripts starts by loading in data.frames that have been prepared.
+Before you run this RMarkdown script, you need to have processed the data using the RawDataProcess.Rmd file, as this scripts starts by loading in data.frames that have been prepared.  In addition, you also need to specify a couple of file locations:
+
++ Path to winBUGS-correct directory
++ Path to winBUGS-incorrect directory
 
 ```{r loadInData}
  load("FSD4knitr99.Rdata")
  load("FSD4knitr.Rdata")
  load("UP994knitr.Rdata")
+
+pathToWinbugsIncorrect <- 'ENTER PATH TO winBUGS-incorrect DIRECTORY HERE'
+lockBinding("pathToWinbugsIncorrect", globalenv())
+pathToWinbugsCorrect <- ENTER PATH TO winBUGS-correct DIRECTORY HERE'
+lockBinding("pathToWinbugsCorrect", globalenv())
+
 ```
 Load in the files containing the dataframes, FinalStudyData99 and ParticipantData
 Convert the classification column values to a factor (think categorical data)
@@ -344,7 +353,7 @@ In order to take account of clustering, a random effects or multi-level model wa
 Neither worked, so in the end, Dawn Teare at the School of Health and Related Research, University of Sheffield, provided a model to undertake a Bayesian analysis using the package WinBUGS. I was able to use this inside R, thanks to the R2WinBUGS() package and installing the [WinBUGS package](http://www.mrc-bsu.cam.ac.uk/software/bugs/the-bugs-project-winbugs/) on my mac and using WINE to acutally run it.
 
 Note that the bugs() instructions are blanked out. You may need to change the WINE and WINEPATH strings to match the filepath to the respective files.
-````{r WinBUGS, width=60}
+````{r WinBUGS, width=60, results='hide',message=F,warning=F}
 
 library('plyr')
 library('R2WinBUGS')
@@ -384,32 +393,17 @@ newCI <- processData2(FSD99CI)
 newCC <- processData(newCC)
 newCI <- processData(newCI)
 
-writeCSV <- function(df,nameDF) {
-  seq_df <- seq(1,nrow(df))
-  outputDF <- data.frame(seq_df)
-  outputDF[,2] <- 1
-  outputDF[,3] <- as.integer(0)
-  outputDF[,4] <- df$participant_id
-  outputDF[,5] <- df$ecg_id
-  outputDF[,6] <- df$diagmessage
-  outputDF[,7] <- df$diagnomessage
-  #outputDF[,8] <- df$orig_participant_id
-  #outputDF[,9] <- df$orig_ecg_id
-  # colnames(outputDF) <- c("row-id","con1","con0","participant-id","ecg-id","diag-message","diag-no-message","orig-part-id","orig-ecg-id")
-  colnames(outputDF) <- c("row-id","con1","con0","participant-id","ecg-id","diag-message","diag-no-message")
-  print(head(outputDF))
-  filename <- paste("~/Dropbox/RData/WinBUGS-correct/",nameDF,"-XXXXXXXX.csv",sep="")
-  write.csv(outputDF, file=filename,row.names=F)
-}
+````
 
-#writeCSV(newCC,"FSD99CC")
+R2WinBUGS has problems writing the data properly when processing matrices. Fortunately, Howard Seltman has provided code to handle this. The following functions are pretty much untouched from his originals: [BugsWrite.R script](http://www.stat.cmu.edu/~hseltman/files/BugsWrite.R), but I have customised a couple of functions for this analysis.
 
-
+````{r BugListCode, width=60, results='hide',message=F,warning=F}
 
 # Main function: Variable argument Bugs list writer.  See example above.
 # Optional argument "columns=" is for writing dataframes or lists of dataframes
 # and is handled specially; see example above and BugsWriteDataFrames().
 # (Note: can't use "a=" due to a Bugs error!!)
+
 BugsListWrite=function(file, append=FALSE, ...) {
   lst=list(...)
   nams=names(lst)
@@ -480,9 +474,6 @@ BugsListWrite=function(file, append=FALSE, ...) {
   invisible(NULL)
 }
 
-
-
-
 # Write a vector, by default as "myvec=c(mydata)"
 BugsVecWrite=function(vec, file, append=TRUE, initial="", final="", perline=10) {
   if (initial=="") {
@@ -497,7 +488,6 @@ BugsVecWrite=function(vec, file, append=TRUE, initial="", final="", perline=10) 
   BugsVecCoreWrite(vec, file, append, initial, final, perline)
   invisible(NULL)
 }
-
 
 # Write a matrix, by default as "myvec=structure(.Data=c(mydata),.Dim=c(rows,col))"
 #  with transposition to acommodated Bugs convention of "first index moves slowest"
@@ -550,8 +540,6 @@ BugsArrayWrite=function(arr, file, append=TRUE, initial="", final="", nodim=FALS
   invisible(NULL)
 }
 
-
-
 # Low level function: Write the core of a vector in bugs format, i.e. comma spaced numbers
 # 10 per line with no final comma.
 BugsVecCoreWrite=function(x, file, append=FALSE, initial="", final="", perline=10) {
@@ -586,7 +574,11 @@ BugsVecCoreWrite=function(x, file, append=FALSE, initial="", final="", perline=1
   invisible(NULL)
 }
 
+````
 
+A couple of customisations to make things work properly. The WriteList() function creates the files necessary for the WinBUGS analysis. You just need to add the model.
+
+````{r BugslistCustomCode, width=60, results='hide',message=F,warning=F}
 modbugs.data <- function (data, dir = getwd(), digits = 5, data.file = "data.txt") 
 {
   if (is.numeric(unlist(data))) 
@@ -625,11 +617,11 @@ writeList <- function(df,nameDF) {
   filename <- ""
   initsname <- ""
   if(nameDF=="FSD99CC") {
-    filename <- paste("/Users/tricky999/Dropbox/RData/WinBUGS-correct/",nameDF,".txt",sep="")
+    filename <- paste(pathToWinbugsCorrect,nameDF,".txt",sep="")
     initsname <- c('WinBUGS-correct/inits.txt')
   }
   else {
-    filename <- paste("/Users/tricky999/Dropbox/RData/WinBUGS-incorrect/",nameDF,".txt",sep="")
+    filename <- paste(pathToWinbugsIncorrect,nameDF,".txt",sep="")
     initsname <- c('WinBUGS-incorrect/inits.txt')
   }
   ecg <- rep(0,E)
@@ -640,17 +632,24 @@ writeList <- function(df,nameDF) {
 
 }
 
-writeList(newCI,"FSD99CI")
-writeList(newCC,"FSD99CC")
+#writeList(newCI,"FSD99CI")
+#writeList(newCC,"FSD99CC")
+
+````
+
+The two lines in the code below set up the model. This identifies the data source, the initial values files (three of them due to their being three chains), and other values such as the number of iterations, burn in etc.
+
+````{r BUGScodeRun, width=60, results='hide',message=F,warning=F}
 
 #bugsTestI <- bugs(data=c("FSD99CI.txt"), inits=c("inits.txt","inits.txt","inits.txt"), parameters.to.save=c("beta","ecg","sds","sde"), model.file = "model.txt",program=c("WinBUGS"),n.chains = 3,n.iter = 1000000,n.burnin=6000,n.thin=5,digits=5, useWINE=TRUE,bugs.directory = "/Users/tricky999/.wine/drive_c/Program Files/WinBUGS14", working.directory = "./winBUGS-incorrect", WINE="/opt/local/bin/wine",WINEPATH="/opt/local/bin/winepath",debug=F,DIC=T,codaPkg=TRUE)
 
 #bugsTestC <- bugs(data=c("correct-data.txt"), inits=c("inits.txt","inits.txt","inits.txt"), parameters.to.save=c("beta","ecg","sds","sde"), model.file = "model.txt",program=c("WinBUGS"),n.chains = 3,n.iter = 1000000,n.burnin=6000,n.thin=5,digits=5, useWINE=TRUE,bugs.directory = "/Users/tricky/Wine Files/drive_c/Program Files/WinBUGS14", working.directory = "./winBUGS-correct", WINE="/Applications/Wine.app/Contents/Resources/bin/wine",WINEPATH="/Applications/Wine.app/Contents/Resources/bin/winepath",debug=F,DIC=TRUE,codaPkg=TRUE)
 
 ````
-Instead, having run the data and generated the results, it's possible to load them in directly.  The generateOR function will load in the correct coda file and calculate the OR, CI and ICC values for ECG and Participants.
-````{r process-WinBUGS-data, results='hide',message=FALSE,warning=FALSE}
 
+Once a simulation has been run, it is not necessary to undertake this again. Instead, it's possible to load the results in directly.  The generateOR function will load in the correct coda file and calculate the OR, CI and ICC values for ECG and Participants.
+
+````{r process-WinBUGS-data, results='hide',message=F,warning=F}
 
 generateOR <- function(chain,dir) {
   filename <- paste(dir,'coda',chain,'.txt',sep='')
@@ -673,13 +672,13 @@ generateOR <- function(chain,dir) {
 
 # Calculate values for each chain
 
-chainoneI <- generateOR(1,'~/Dropbox/RData/winBUGS-incorrect/')
-chaintwoI <- generateOR(2,'~/Dropbox/RData/winBUGS-incorrect/')
-chainthreeI <- generateOR(3,'~/Dropbox/RData/winBUGS-incorrect/')
+chainoneI <- generateOR(1,pathToWinbugsIncorrect)
+chaintwoI <- generateOR(2,pathToWinbugsIncorrect)
+chainthreeI <- generateOR(3,pathToWinbugsIncorrect)
 
-chainoneC <- generateOR(1,'~/Dropbox/RData/winBUGS-correct/')
-chaintwoC <- generateOR(2,'~/Dropbox/RData/winBUGS-correct/')
-chainthreeC <- generateOR(3,'~/Dropbox/RData/winBUGS-correct/')
+chainoneC <- generateOR(1,pathToWinbugsCorrect)
+chaintwoC <- generateOR(2,pathToWinbugsCorrect)
+chainthreeC <- generateOR(3,pathToWinbugsCorrect)
 
 
 ````
@@ -690,8 +689,15 @@ chainthreeC <- generateOR(3,'~/Dropbox/RData/winBUGS-correct/')
 |------------------|:-----------------:|:--------------------:|:-------------------:|
 | **OR**          |  `r chainoneI[1]`  | `r chaintwoI[1]`     | `r chainthreeI[1]`  | 
 | **95% CI**      | `r chainoneI[2]`-`r chainoneI[3]` | `r chaintwoI[2]`-`r chaintwoI[3]`  | `r chainthreeI[2]`-`r chainthreeI[3]` |
-|  **ICC ECG**        | `r chainoneI[3]`   | `r chaintwoI[3]`     |  `r chainthreeI[3]` |
-| **ICC Participants** | `r chainoneI[4]` | `r chaintwoI[4]`      |  `r chainthreeI[4]` |
+|  **ICC ECG**        | `r chainoneI[4]`   | `r chaintwoI[4]`     |  `r chainthreeI[4]` |
+| **ICC Participants** | `r chainoneI[5]` | `r chaintwoI[5]`      |  `r chainthreeI[5]` |
+
+Taking the mean values for all three incorrect computer interpretation chains gives the following results:
+
++ OR: `r (chainoneI[1]+chaintwoI[1]+chainthreeI[1])/3`
++ 95%CI: `r (chainoneI[2]+chaintwoI[2]+chainthreeI[2])/3`-`r (chainoneI[3]+chaintwoI[3]+chainthreeI[3])/3`
++ ICC ECG: `r (chainoneI[4]+chaintwoI[4]+chainthreeI[4])/3`
++ ICC Participants: `r (chainoneI[5]+chaintwoI[5]+chainthreeI[5])/3`
 
 
 #### Correct Computer Interpretation: Results from 3 chains
@@ -701,7 +707,13 @@ chainthreeC <- generateOR(3,'~/Dropbox/RData/winBUGS-correct/')
 |------------------|:-----------------:|:--------------------:|:-------------------:|
 | **OR**          |  `r chainoneC[1]`  | `r chaintwoC[1]`     | `r chainthreeC[1]`  | 
 | **95% CI**      | `r chainoneC[2]`-`r chainoneC[3]` | `r chaintwoI[2]`-`r chaintwoC[3]`  | `r chainthreeC[2]`-`r chainthreeC[3]` |
-|  **ICC ECG**        | `r chainoneC[3]`   | `r chaintwoC[3]`     |  `r chainthreeC[3]` |
-| **ICC Participants** | `r chainoneC[4]` | `r chaintwoC[4]`      |  `r chainthreeC[4]` |
+|  **ICC ECG**        | `r chainoneC[4]`   | `r chaintwoC[4]`     |  `r chainthreeC[4]` |
+| **ICC Participants** | `r chainoneC[5]` | `r chaintwoC[5]`      |  `r chainthreeC[5]` |
 
+Taking the mean values for all three correct computer interpretation chains gives the following results:
+
++ OR: `r (chainoneC[1]+chaintwoC[1]+chainthreeC[1])/3`
++ 95%CI: `r (chainoneC[2]+chaintwoC[2]+chainthreeC[2])/3`-`r (chainoneC[3]+chaintwoC[3]+chainthreeC[3])/3`
++ ICC ECG: `r (chainoneC[4]+chaintwoC[4]+chainthreeC[4])/3`
++ ICC Participants: `r (chainoneC[5]+chaintwoC[5]+chainthreeC[5])/3`
 
