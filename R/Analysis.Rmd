@@ -19,10 +19,18 @@ Before you run this RMarkdown script, you need to have processed the data using 
  load("FSD4knitr.Rdata")
  load("UP994knitr.Rdata")
 
+pathToWinbugsApp <- 'ENTER PATH TO WinBUGS14 DIRECTORY HERE'
+lockBinding("pathToWinbugsApp", globalenv())
+
 pathToWinbugsIncorrect <- 'ENTER PATH TO winBUGS-incorrect DIRECTORY HERE'
 lockBinding("pathToWinbugsIncorrect", globalenv())
-pathToWinbugsCorrect <- ENTER PATH TO winBUGS-correct DIRECTORY HERE'
+pathToWinbugsCorrect <- 'ENTER PATH TO winBUGS-correct DIRECTORY HERE'
 lockBinding("pathToWinbugsCorrect", globalenv())
+
+pathToWine <- 'ENTER PATH TO wine HERE'
+lockBinding("pathToWine", globalenv())
+pathToWinePath <- 'ENTER PATH TO winepath HERE'
+lockBinding("pathToWinePath", globalenv())
 
 ```
 Load in the files containing the dataframes, FinalStudyData99 and ParticipantData
@@ -641,9 +649,9 @@ The two lines in the code below set up the model. This identifies the data sourc
 
 ````{r BUGScodeRun, width=60, results='hide',message=F,warning=F}
 
-#bugsTestI <- bugs(data=c("FSD99CI.txt"), inits=c("inits.txt","inits.txt","inits.txt"), parameters.to.save=c("beta","ecg","sds","sde"), model.file = "model.txt",program=c("WinBUGS"),n.chains = 3,n.iter = 1000000,n.burnin=6000,n.thin=5,digits=5, useWINE=TRUE,bugs.directory = "/Users/tricky999/.wine/drive_c/Program Files/WinBUGS14", working.directory = "./winBUGS-incorrect", WINE="/opt/local/bin/wine",WINEPATH="/opt/local/bin/winepath",debug=F,DIC=T,codaPkg=TRUE)
+#bugsTestI <- bugs(data=c("FSD99CI.txt"), inits=c("inits.txt","inits.txt","inits.txt"), parameters.to.save=c("beta","ecg","sds","sde"), model.file = "model.txt",program=c("WinBUGS"),n.chains = 3,n.iter = 1000000,n.burnin=6000,n.thin=5,digits=5, useWINE=TRUE,bugs.directory = pathToWinbugsApp, working.directory = pathToWinbugsIncorrect, WINE=pathToWine,WINEPATH=pathToWinePath ,debug=F,DIC=T,codaPkg=TRUE)
 
-#bugsTestC <- bugs(data=c("correct-data.txt"), inits=c("inits.txt","inits.txt","inits.txt"), parameters.to.save=c("beta","ecg","sds","sde"), model.file = "model.txt",program=c("WinBUGS"),n.chains = 3,n.iter = 1000000,n.burnin=6000,n.thin=5,digits=5, useWINE=TRUE,bugs.directory = "/Users/tricky/Wine Files/drive_c/Program Files/WinBUGS14", working.directory = "./winBUGS-correct", WINE="/Applications/Wine.app/Contents/Resources/bin/wine",WINEPATH="/Applications/Wine.app/Contents/Resources/bin/winepath",debug=F,DIC=TRUE,codaPkg=TRUE)
+#bugsTestC <- bugs(data=c("FSD99CC.txt"), inits=c("inits.txt","inits.txt","inits.txt"), parameters.to.save=c("beta","ecg","sds","sde"), model.file = "model.txt",program=c("WinBUGS"),n.chains = 3,n.iter = 1000000,n.burnin=6000,n.thin=5,digits=5, useWINE=TRUE,bugs.directory = pathToWinbugsApp, working.directory = pathToWinbugsCorrect, WINE=pathToWine,WINEPATH=pathToWinePath ,debug=F,DIC=T,codaPkg=TRUE)
 
 ````
 
