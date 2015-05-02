@@ -11,8 +11,11 @@ RESPECT Pilot Study - Analysis script
 
 Before you run this RMarkdown script, you need to have processed the data using the RawDataProcess.Rmd file, as this scripts starts by loading in data.frames that have been prepared.  In addition, you also need to specify a couple of file locations:
 
++ Path to winBUGS14 directory
 + Path to winBUGS-correct directory
 + Path to winBUGS-incorrect directory
++ Path to wine
++ Path to winepath
 
 ```{r loadInData}
  load("FSD4knitr99.Rdata")
