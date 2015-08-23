@@ -1,16 +1,21 @@
 ---
 title: "Carryover and Period Effect Calculations"
-author: "Richard Pilbery"
-date: "10 August 2015"
-output: html_document
+author: "RESPECT feasibility study"
+date: "20 August 2015"
+output: word_document
 ---
 
 RESPECT Pilot Study - Assessing for Carryover and Period Effects
 ========================================================
 
-This script loads in the processed data and runs tests for carryover and period effects.  It is based on a [presentation](http://nickfieller.staff.shef.ac.uk/tampere/clinicalslidesThursday.pdf) given by Dr Nick Feller.
+This script loads in the processed data and runs tests for carryover and period effects.  It is based on the following references:
 
-In order to maximise reproducability, these scripts use the checkpoint package.  This needs loading:
++ Cleophas TJM, Editor. Statistics applied to clinical trials. 4th ed. Dordrecht: : Springer 2009. 
++ Reed III JF. AB/BA crossover trials-binary outcome. Journal of Modern Applied Statistical Methods 2005;5:19.
++  Senn, SJ, The AB/BA cross-over: how to perform the two-stage analysis if you can't be persuaded that you shouldn't., in Liber Amicorum Roel van Strik, Hansen, B., and de Ridder, M., Eds., Erasmus University, Rotterdam; 1996
+
+
+In order to maximise reproducability, these [R](https://www.r-project.org/) scripts use the checkpoint package.  This needs loading:
 
 ```{r results='hide',message=FALSE,warning=FALSE}
 library(checkpoint)
@@ -34,10 +39,10 @@ FSD99CC <- subset(FinalStudyData99,FinalStudyData99$truepos==1|FinalStudyData99$
 FSD99CI <- subset(FinalStudyData99,FinalStudyData99$falsepos==1|FinalStudyData99$falseneg==1)
 ```
 
-Carryover Effects
+Treatment Effects
 ------------------
 
-The createDF function returns 
+The createDF function returns a data frame required to generate a summary table enabling treatment effect calculation.
 
 ```{r createDF-function}
 
@@ -47,6 +52,7 @@ createDF <- function(dataframe=FinalStudyData99)  {
              diag_correct) %>%
       mutate(attempt = ifelse(qn_number < 13, 'attempt1', 'attempt2')) %>%
       group_by(participant_id, ecg_id) %>%
+        filter(diag_correct[1] != diag_correct[2]) %>%
         summarise(
           sequence = ifelse(attempt[1] == 'attempt1','hv','vh'),
           diag_correct1 = ifelse(attempt[1] == 'attempt1',diag_correct[1],diag_correct[2]),
@@ -62,37 +68,29 @@ createDF <- function(dataframe=FinalStudyData99)  {
 
 ```
 
-Run the function for computer correct, computer incorrect and all interpretions:
+Run the function for computer correct and computer incorrect interpretions:
 
 ````{r functionCalls, message=FALSE,warning=FALSE}
 
 compcorrectDF <- createDF(FSD99CC)
 compincorrectDF <- createDF(FSD99CI)
-compallDF <- createDF()
 
 ```
 
-### Summary tables for Carryover effect calculations
+### Summary tables for Treatment effect calculations
 #### Computer correct interpretations
 
-| Sequence          | Correct 1st attempt             |         Correct 2nd attempt     |
-|:------------------|:-------------------------------:|:-------------------------------:|
-| Visible -> Hidden | `r compcorrectDF$correct1st[1]` | `r compcorrectDF$correct2nd[1]` |
-| Hidden -> Visible | `r compcorrectDF$correct1st[2]` | `r compcorrectDF$correct2nd[2]` |
+| Sequence          | Correct 1st attempt             |         Correct 2nd attempt     | Total |
+|:------------------|:-------------------------------:|:-------------------------------:|:-----:|
+| Visible -> Hidden | `r compcorrectDF$correct1st[1]` | `r compcorrectDF$correct2nd[1]` | `r compcorrectDF$correct1st[1] + compcorrectDF$correct2nd[1]`
+| Hidden -> Visible | `r compcorrectDF$correct1st[2]` | `r compcorrectDF$correct2nd[2]` | `r compcorrectDF$correct1st[2] + compcorrectDF$correct2nd[2]` |
 
 #### Computer incorrect interpretations
 
-| Sequence          | Correct 1st attempt             |         Correct 2nd attempt     |
-|:------------------|:-------------------------------:|:-------------------------------:|
-| Visible -> Hidden | `r compincorrectDF$correct1st[1]` | `r compincorrectDF$correct2nd[1]` |
-| Hidden -> Visible | `r compincorrectDF$correct1st[2]` | `r compincorrectDF$correct2nd[2]` |
-
-#### All interpretations
-
-| Sequence          | Correct 1st attempt             |         Correct 2nd attempt     |
-|:------------------|:-------------------------------:|:-------------------------------:|
-| Visible -> Hidden | `r compallDF$correct1st[1]` | `r compallDF$correct2nd[1]` |
-| Hidden -> Visible | `r compallDF$correct1st[2]` | `r compallDF$correct2nd[2]` |
+| Sequence          | Correct 1st attempt             |         Correct 2nd attempt     | Total |
+|:------------------|:-------------------------------:|:-------------------------------:|:-----:|
+| Visible -> Hidden | `r compincorrectDF$correct1st[1]` | `r compincorrectDF$correct2nd[1]` | `r compincorrectDF$correct1st[1] + compincorrectDF$correct2nd[1]` |
+| Hidden -> Visible | `r compincorrectDF$correct1st[2]` | `r compincorrectDF$correct2nd[2]` | `r compincorrectDF$correct1st[2] + compincorrectDF$correct2nd[2]` |
 
 The chithesquare function creates a matrix from the createDF function and then performs a Chi-squared test on the resulting 2x2 table
 
@@ -103,22 +101,46 @@ chithesquare <- function(df) {
   }
 ```
 
-Run the chithesquare function on computer correct, computer incorrect and all results
 
-````{r functionCalls2, message=FALSE,warning=FALSE}
-csCeAll <- chithesquare(compallDF)
-csCeCI <- chithesquare(compincorrectDF)
-csCeCC <- chithesquare(compcorrectDF)
+The proptest function tests the null that the proportions of success (in this case a correct diagnosis when the message is visible) in the groups (visible->hidden and hidden->visible) are the same.
+
+````{r fisherT, width=60}
+proptest <- function(x1,x2,n1,n2) {
+    prop.test(x=c(x1,x2),n=c(n1,n2))
+  }
 ```
 
+Run the chithesquare and fishertest functions on computer correct and computer incorrect results
 
-#### Summary of carryover tests
+````{r functionCalls2, message=FALSE,warning=FALSE}
+csTeCI <- chithesquare(compincorrectDF)
+csTeCC <- chithesquare(compcorrectDF)
 
-| Dataset            |      chi-squared            |      p-value         |
+csCeCI <- proptest(compincorrectDF$correct1st[1], compincorrectDF$correct2nd[2], compincorrectDF$correct1st[1] + compincorrectDF$correct2nd[1],compincorrectDF$correct1st[2] + compincorrectDF$correct2nd[2])
+csCeCC <- proptest(compcorrectDF$correct1st[1], compcorrectDF$correct2nd[2], compcorrectDF$correct1st[1] + compcorrectDF$correct2nd[1],compcorrectDF$correct1st[2] + compcorrectDF$correct2nd[2])
+
+```
+
+#### Summary of treatment effect tests
+
+| Dataset            |      chi-squared            |      p-value         | 
+|--------------------|:---------------------------:|:--------------------:|:------------:|
+| Computer correct   |  `r round(csTeCC$statistic[[1]],2)`  | `r round(csTeCC$p.value,2)`   | 
+| Computer incorrect |  `r round(csTeCI$statistic[[1]],2)`  | `r round(csTeCI$p.value,2)`   | 
+
+**NOTE**
+These results suggest that there is a significant treatment effect from the computer incorrect messages and this persists irrespective of the order that the ECGs were shown to the participant.
+
+#### Summary of carryover effect tests
+
+| Dataset            |      chi-squared            |      p-value         | 
 |--------------------|:---------------------------:|:--------------------:|
-| All data           |  `r round(csCeAll$statistic[[1]],3)` | `r round(csCeAll$p.value,3)`  | 
-| Computer correct   |  `r round(csCeCC$statistic[[1]],3)`  | `r round(csCeCC$p.value,3)`   |
-| Computer incorrect |  `r round(csCeCI$statistic[[1]],3)`  | `r round(csCeCI$p.value,3)`   |
+| Computer correct   |  `r round(csCeCC$statistic[[1]],2)`  | `r round(csCeCC$p.value,2)`   | 
+| Computer incorrect |  `r round(csCeCI$statistic[[1]],2)`  | `r round(csCeCI$p.value,2)`   | 
+
+**NOTE**
+These results suggest no significant evidence of carryover, which is probably not surprising given that the ECGs were viewed for a maximum of 60 seconds and there was a two-week washout between attempts.
+
 
 Period Effects
 ------------------
@@ -132,6 +154,7 @@ createPeriodDF <- function(dataframe=FinalStudyData99)  {
            classification, diag_correct) %>%
     mutate(attempt = ifelse(qn_number < 13, 'attempt1', 'attempt2')) %>%
     group_by(participant_id, ecg_id) %>%
+    filter(diag_correct[1] != diag_correct[2]) %>%
     summarise(
       sequence = ifelse(attempt[1] == 'attempt1','hv','vh'),
       corr_vis = ifelse(diag_correct[1], 0, 1),
@@ -149,7 +172,6 @@ createPeriodDF <- function(dataframe=FinalStudyData99)  {
 ````{r functionCalls3}
 compcorrectPDF <- createPeriodDF(FSD99CC)
 compincorrectPDF <- createPeriodDF(FSD99CI)
-compallPDF <- createPeriodDF()
 ```
 
 ### Summary tables for Period effect calculations
@@ -167,15 +189,7 @@ compallPDF <- createPeriodDF()
 | Visible -> Hidden | `r compincorrectPDF$Vis[1]` | `r compincorrectPDF$Hid[1]` |
 | Hidden -> Visible | `r compincorrectPDF$Vis[2]` | `r compincorrectPDF$Hid[2]` |
 
-#### All interpretations
 
-| Sequence          | Correct when message visible | Correct when message hidden |
-|:------------------|:---------------------:|:---------------------:|
-| Visible -> Hidden | `r compallPDF$Vis[1]` | `r compallPDF$Hid[1]` |
-| Hidden -> Visible | `r compallPDF$Vis[2]` | `r compallPDF$Hid[2]` |
-
-
-The chithePsquare function creates a matrix from the createPeriodDF function and then performs a Chi-squared test on the resulting 2x2 table
 
 ```{r chithePsquare, width=60}
 chithePsquare <- function(df) {
@@ -184,19 +198,20 @@ chithePsquare <- function(df) {
 }
 ```
 
+
 ```{r functionCalls4}
-csPeAll <- chithePsquare(compallPDF)
+
 csPeCI <- chithePsquare(compincorrectPDF)
 csPeCC <- chithePsquare(compcorrectPDF)
+
 ```
 
 ### Summary of period tests
 
-| Dataset            |      chi-squared            |      p-value         |
+| Dataset            |      chi-squared            |  p-value |
 |--------------------|:---------------------------:|:--------------------:|
-| All data           |  `r round(csPeAll$statistic[[1]],3)` | `r round(csPeAll$p.value,3)`  | 
-| Computer correct   |  `r round(csPeCC$statistic[[1]],3)`  | `r round(csPeCC$p.value,3)`   |
-| Computer incorrect |  `r round(csPeCI$statistic[[1]],3)`  | `r round(csPeCI$p.value,3)`   |
+| Computer correct   |  `r round(csPeCC$statistic[[1]],2)`  | `r round(csPeCC$p.value,2)`   |
+| Computer incorrect |  `r round(csPeCI$statistic[[1]],2)`  | `r round(csPeCI$p.value,2)`   | 
 
-So, it looks like there is no significant carryover or period effects in this sample
+So, it looks like there is no significant period effects in this sample.
 
