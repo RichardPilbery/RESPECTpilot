@@ -8,9 +8,8 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
-<meta name="author" content="RESPECT feasibility study" />
+<meta name="author" content="Richard Pilbery" />
 
-<meta name="date" content="2015-08-20" />
 
 <title>Carryover and Period Effect Calculations</title>
 
@@ -63,20 +62,15 @@ img {
 
 <div id="header">
 <h1 class="title">Carryover and Period Effect Calculations</h1>
-<h4 class="author"><em>RESPECT feasibility study</em></h4>
-<h4 class="date"><em>20 August 2015</em></h4>
+<h4 class="author"><em>Richard Pilbery</em></h4>
+<h4 class="date"><em>03 February, 2016</em></h4>
 </div>
 
 
 <div id="respect-pilot-study---assessing-for-carryover-and-period-effects" class="section level1">
 <h1>RESPECT Pilot Study - Assessing for Carryover and Period Effects</h1>
-<p>This script loads in the processed data and runs tests for carryover and period effects. It is based on the following references:</p>
-<ul>
-<li>Cleophas TJM, Editor. Statistics applied to clinical trials. 4th ed. Dordrecht: : Springer 2009.</li>
-<li>Reed III JF. AB/BA crossover trials-binary outcome. Journal of Modern Applied Statistical Methods 2005;5:19.</li>
-<li>Senn, SJ, The AB/BA cross-over: how to perform the two-stage analysis if you can’t be persuaded that you shouldn’t., in Liber Amicorum Roel van Strik, Hansen, B., and de Ridder, M., Eds., Erasmus University, Rotterdam; 1996</li>
-</ul>
-<p>In order to maximise reproducability, these <a href="https://www.r-project.org/">R</a> scripts use the checkpoint package. This needs loading:</p>
+<p>This script loads in the processed data and runs tests for carryover and period effects. It is based on a <a href="http://nickfieller.staff.shef.ac.uk/tampere/clinicalslidesThursday.pdf">presentation</a> given by Dr Nick Feller.</p>
+<p>In order to maximise reproducability, these scripts use the checkpoint package. This needs loading:</p>
 <pre class="r"><code>library(checkpoint)
 checkpoint('2015-08-10')</code></pre>
 <p>Load the required package, dplyr</p>
@@ -87,9 +81,9 @@ FinalStudyData99$classification &lt;- factor(FinalStudyData99$classification)</c
 <p>Create two subsets of the data, FSD99CC containing data where the computer was correct (i.e. true positives and true negatives) and FSD99CI, which contains data where the computer was incorrect.</p>
 <pre class="r"><code>FSD99CC &lt;- subset(FinalStudyData99,FinalStudyData99$truepos==1|FinalStudyData99$trueneg==1)
 FSD99CI &lt;- subset(FinalStudyData99,FinalStudyData99$falsepos==1|FinalStudyData99$falseneg==1)</code></pre>
-<div id="treatment-effects" class="section level2">
-<h2>Treatment Effects</h2>
-<p>The createDF function returns a data frame required to generate a summary table enabling treatment effect calculation.</p>
+<div id="carryover-effects" class="section level2">
+<h2>Carryover Effects</h2>
+<p>The createDF function returns</p>
 <pre class="r"><code>createDF &lt;- function(dataframe=FinalStudyData99)  { 
     carryoverdf &lt;- dataframe %&gt;%
       select(qn_number, participant_id, ecg_id, message_visible, classification, 
@@ -109,11 +103,12 @@ FSD99CI &lt;- subset(FinalStudyData99,FinalStudyData99$falsepos==1|FinalStudyDat
       ) %&gt;%
       arrange(desc(sequence))
 }</code></pre>
-<p>Run the function for computer correct and computer incorrect interpretions:</p>
+<p>Run the function for computer correct, computer incorrect and all interpretions:</p>
 <pre class="r"><code>compcorrectDF &lt;- createDF(FSD99CC)
-compincorrectDF &lt;- createDF(FSD99CI)</code></pre>
-<div id="summary-tables-for-treatment-effect-calculations" class="section level3">
-<h3>Summary tables for Treatment effect calculations</h3>
+compincorrectDF &lt;- createDF(FSD99CI)
+compallDF &lt;- createDF()</code></pre>
+<div id="summary-tables-for-carryover-effect-calculations" class="section level3">
+<h3>Summary tables for Carryover effect calculations</h3>
 <div id="computer-correct-interpretations" class="section level4">
 <h4>Computer correct interpretations</h4>
 <table>
@@ -122,7 +117,6 @@ compincorrectDF &lt;- createDF(FSD99CI)</code></pre>
 <th align="left">Sequence</th>
 <th align="center">Correct 1st attempt</th>
 <th align="center">Correct 2nd attempt</th>
-<th align="center">Total</th>
 </tr>
 </thead>
 <tbody>
@@ -130,13 +124,11 @@ compincorrectDF &lt;- createDF(FSD99CI)</code></pre>
 <td align="left">Visible -&gt; Hidden</td>
 <td align="center">38</td>
 <td align="center">27</td>
-<td align="center">65</td>
 </tr>
 <tr class="even">
 <td align="left">Hidden -&gt; Visible</td>
 <td align="center">26</td>
 <td align="center">42</td>
-<td align="center">68</td>
 </tr>
 </tbody>
 </table>
@@ -149,7 +141,6 @@ compincorrectDF &lt;- createDF(FSD99CI)</code></pre>
 <th align="left">Sequence</th>
 <th align="center">Correct 1st attempt</th>
 <th align="center">Correct 2nd attempt</th>
-<th align="center">Total</th>
 </tr>
 </thead>
 <tbody>
@@ -157,13 +148,35 @@ compincorrectDF &lt;- createDF(FSD99CI)</code></pre>
 <td align="left">Visible -&gt; Hidden</td>
 <td align="center">29</td>
 <td align="center">65</td>
-<td align="center">94</td>
 </tr>
 <tr class="even">
 <td align="left">Hidden -&gt; Visible</td>
 <td align="center">63</td>
 <td align="center">48</td>
-<td align="center">111</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="all-interpretations" class="section level4">
+<h4>All interpretations</h4>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Sequence</th>
+<th align="center">Correct 1st attempt</th>
+<th align="center">Correct 2nd attempt</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Visible -&gt; Hidden</td>
+<td align="center">67</td>
+<td align="center">92</td>
+</tr>
+<tr class="even">
+<td align="left">Hidden -&gt; Visible</td>
+<td align="center">89</td>
+<td align="center">90</td>
 </tr>
 </tbody>
 </table>
@@ -172,66 +185,102 @@ compincorrectDF &lt;- createDF(FSD99CI)</code></pre>
     chisq.test(matrix(c(df$correct1st[1],df$correct1st[2],df$correct2nd[1],df$correct2nd[1]),
                       ncol=2,nrow=2))
   }</code></pre>
-<p>The proptest function tests the null that the proportions of success (in this case a correct diagnosis when the message is visible) in the groups (visible-&gt;hidden and hidden-&gt;visible) are the same.</p>
-<pre class="r"><code>proptest &lt;- function(x1,x2,n1,n2) {
-    prop.test(x=c(x1,x2),n=c(n1,n2))
+<p>The fishertest function creates a matrix from the createDF function and then performs a Fisher’s exact test for count data on the resulting 2x2 table</p>
+<pre class="r"><code>fishertest &lt;- function(df) {
+    fisher.test(matrix(c(df$correct1st[1],df$correct1st[2],df$correct2nd[1],df$correct2nd[1]),
+                      ncol=2,nrow=2))
   }</code></pre>
-<p>Run the chithesquare and fishertest functions on computer correct and computer incorrect results</p>
-<pre class="r"><code>csTeCI &lt;- chithesquare(compincorrectDF)
-csTeCC &lt;- chithesquare(compcorrectDF)
+<p>Run the chithesquare and fishertest functions on computer correct, computer incorrect and all results</p>
+<pre class="r"><code>csCeAll &lt;- chithesquare(compallDF)
+csCeCI &lt;- chithesquare(compincorrectDF)
+csCeCC &lt;- chithesquare(compcorrectDF)
 
-csCeCI &lt;- proptest(compincorrectDF$correct1st[1], compincorrectDF$correct2nd[2], compincorrectDF$correct1st[1] + compincorrectDF$correct2nd[1],compincorrectDF$correct1st[2] + compincorrectDF$correct2nd[2])
-csCeCC &lt;- proptest(compcorrectDF$correct1st[1], compcorrectDF$correct2nd[2], compcorrectDF$correct1st[1] + compcorrectDF$correct2nd[1],compcorrectDF$correct1st[2] + compcorrectDF$correct2nd[2])</code></pre>
+ftCeAll &lt;- fishertest(compallDF)
+ftCeCI &lt;- fishertest(compincorrectDF)
+ftCeCC &lt;- fishertest(compcorrectDF)</code></pre>
 </div>
-<div id="summary-of-treatment-effect-tests" class="section level4">
-<h4>Summary of treatment effect tests</h4>
+<div id="summary-of-carryover-tests" class="section level4">
+<h4>Summary of carryover tests</h4>
 <table>
 <thead>
 <tr class="header">
 <th align="left">Dataset</th>
 <th align="center">chi-squared</th>
 <th align="center">p-value</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td align="left">Computer correct</td>
-<td align="center">0.7</td>
-<td align="center">0.4</td>
-</tr>
-<tr class="even">
-<td align="left">Computer incorrect</td>
-<td align="center">6.8</td>
-<td align="center">0.01</td>
-</tr>
-</tbody>
-</table>
-<p><strong>NOTE</strong> These results suggest that there is a significant treatment effect from the computer incorrect messages and this persists irrespective of the order that the ECGs were shown to the participant.</p>
-</div>
-<div id="summary-of-carryover-effect-tests" class="section level4">
-<h4>Summary of carryover effect tests</h4>
-<table>
-<thead>
-<tr class="header">
-<th align="left">Dataset</th>
-<th align="center">chi-squared</th>
+<th align="center">Fisher estimate</th>
 <th align="center">p-value</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">Computer correct</td>
-<td align="center">0.04</td>
-<td align="center">0.83</td>
+<td align="left">All data</td>
+<td align="center">1.415</td>
+<td align="center">0.234</td>
+<td align="center">0.753</td>
+<td align="center">0.23</td>
 </tr>
 <tr class="even">
+<td align="left">Computer correct</td>
+<td align="center">0.696</td>
+<td align="center">0.404</td>
+<td align="center">1.457</td>
+<td align="center">0.355</td>
+</tr>
+<tr class="odd">
 <td align="left">Computer incorrect</td>
-<td align="center">2.83</td>
-<td align="center">0.09</td>
+<td align="center">6.797</td>
+<td align="center">0.009</td>
+<td align="center">0.462</td>
+<td align="center">0.009</td>
 </tr>
 </tbody>
 </table>
-<p><strong>NOTE</strong> These results suggest no significant evidence of carryover, which is probably not surprising given that the ECGs were viewed for a maximum of 60 seconds and there was a two-week washout between attempts.</p>
+<p><strong>NOTE</strong> These results suggest that participants seem more likely to ignore the incorrect message if they have seen the ECG already without the message. This could be due to one of the ECGs, so let’s examine the discordant pairs by computer incorrect ECG:</p>
+<pre class="r"><code>carryoverdf &lt;&lt;- FinalStudyData99 %&gt;%
+      select(qn_number, participant_id, ecg_id, message_visible, classification, 
+             diag_correct, cc) %&gt;%
+      filter(cc == 0) %&gt;%
+      mutate(attempt = ifelse(qn_number &lt; 13, 'attempt1', 'attempt2')) %&gt;%
+      group_by(participant_id, ecg_id) %&gt;%
+        filter(diag_correct[1] != diag_correct[2]) %&gt;%
+        summarise(
+          sequence = ifelse(attempt[1] == 'attempt1','hv','vh'),
+          diag_correct1 = ifelse(attempt[1] == 'attempt1',diag_correct[1],diag_correct[2]),
+          diag_correct2 = ifelse(attempt[1] == 'attempt2',diag_correct[1],diag_correct[2]),
+          ecgid = ecg_id[1]
+        ) %&gt;%
+      group_by(ecgid, sequence) %&gt;%
+      summarise(
+        correct1st = sum(diag_correct1),
+        correct2nd = sum(diag_correct2)
+      ) %&gt;%
+      mutate(absdiff = abs(correct2nd-correct1st))
+
+  head(carryoverdf[order(carryoverdf$absdiff, decreasing=T),], n=20)</code></pre>
+<pre><code>## Source: local data frame [20 x 5]
+## Groups: ecgid
+## 
+##    ecgid sequence correct1st correct2nd absdiff
+## 1      9       vh          1          5       4
+## 2     15       hv          6          2       4
+## 3     39       vh          1          5       4
+## 4     40       vh          1          5       4
+## 5     42       hv          8          4       4
+## 6      8       vh          1          4       3
+## 7     11       vh          1          4       3
+## 8     16       vh          1          4       3
+## 9     18       hv          6          3       3
+## 10    18       vh          0          3       3
+## 11    42       vh          1          4       3
+## 12     6       vh          0          2       2
+## 13    19       hv          2          0       2
+## 14    23       vh          0          2       2
+## 15    40       hv          1          3       2
+## 16    45       hv          0          2       2
+## 17    47       hv          5          3       2
+## 18    48       hv          5          3       2
+## 19     7       hv          2          1       1
+## 20     7       vh          3          2       1</code></pre>
 </div>
 </div>
 </div>
@@ -258,7 +307,8 @@ csCeCC &lt;- proptest(compcorrectDF$correct1st[1], compcorrectDF$correct2nd[2], 
     arrange(desc(sequence))
 } </code></pre>
 <pre class="r"><code>compcorrectPDF &lt;- createPeriodDF(FSD99CC)
-compincorrectPDF &lt;- createPeriodDF(FSD99CI)</code></pre>
+compincorrectPDF &lt;- createPeriodDF(FSD99CI)
+compallPDF &lt;- createPeriodDF()</code></pre>
 <div id="summary-tables-for-period-effect-calculations" class="section level3">
 <h3>Summary tables for Period effect calculations</h3>
 <div id="computer-correct-interpretations-1" class="section level4">
@@ -308,12 +358,46 @@ compincorrectPDF &lt;- createPeriodDF(FSD99CI)</code></pre>
 </tr>
 </tbody>
 </table>
+</div>
+<div id="all-interpretations-1" class="section level4">
+<h4>All interpretations</h4>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Sequence</th>
+<th align="center">Correct when message visible</th>
+<th align="center">Correct when message hidden</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Visible -&gt; Hidden</td>
+<td align="center">67</td>
+<td align="center">92</td>
+</tr>
+<tr class="even">
+<td align="left">Hidden -&gt; Visible</td>
+<td align="center">90</td>
+<td align="center">89</td>
+</tr>
+</tbody>
+</table>
+<p>The chithePsquare and fisherPtest functions creates a matrix from the createPeriodDF function and then performs a Chi-squared test on the resulting 2x2 table</p>
 <pre class="r"><code>chithePsquare &lt;- function(df) {
   chisq.test(matrix(c(df$Vis[1],df$Vis[2],df$Hid[1],df$Hid[1]),
                     ncol=2,nrow=2))
 }</code></pre>
-<pre class="r"><code>csPeCI &lt;- chithePsquare(compincorrectPDF)
-csPeCC &lt;- chithePsquare(compcorrectPDF)</code></pre>
+<pre class="r"><code>fisherPtest &lt;- function(df) {
+  fisher.test(matrix(c(df$Vis[1],df$Vis[2],df$Hid[1],df$Hid[1]),
+                    ncol=2,nrow=2))
+}</code></pre>
+<pre class="r"><code>csPeAll &lt;- chithePsquare(compallPDF)
+csPeCI &lt;- chithePsquare(compincorrectPDF)
+csPeCC &lt;- chithePsquare(compcorrectPDF)
+
+ftPeAll &lt;- fisherPtest(compallPDF)
+ftPeCI &lt;- fisherPtest(compincorrectPDF)
+ftPeCC &lt;- fisherPtest(compcorrectPDF)</code></pre>
 </div>
 </div>
 <div id="summary-of-period-tests" class="section level3">
@@ -324,22 +408,35 @@ csPeCC &lt;- chithePsquare(compcorrectPDF)</code></pre>
 <th align="left">Dataset</th>
 <th align="center">chi-squared</th>
 <th align="center">p-value</th>
+<th align="center">Fisher estimate</th>
+<th align="left">p-value</th>
 </tr>
 </thead>
 <tbody>
 <tr class="odd">
-<td align="left">Computer correct</td>
-<td align="center">0.01</td>
-<td align="center">0.91</td>
+<td align="left">All data</td>
+<td align="center">1.544</td>
+<td align="center">0.214</td>
+<td align="center">0.745</td>
+<td align="left">0.192</td>
 </tr>
 <tr class="even">
+<td align="left">Computer correct</td>
+<td align="center">0.012</td>
+<td align="center">0.914</td>
+<td align="center">0.905</td>
+<td align="left">0.861</td>
+</tr>
+<tr class="odd">
 <td align="left">Computer incorrect</td>
-<td align="center">2.49</td>
-<td align="center">0.11</td>
+<td align="center">2.493</td>
+<td align="center">0.114</td>
+<td align="center">0.606</td>
+<td align="left">0.112</td>
 </tr>
 </tbody>
 </table>
-<p>So, it looks like there is no significant period effects in this sample.</p>
+<p>So, it looks like there is no significant carryover or period effects in this sample</p>
 </div>
 </div>
 </div>
